@@ -7,6 +7,7 @@ RUN apk add --no-cache \
     nasm \
     pkgconfig \
     zlib-dev \
+    zlib-static \
     curl
 
 ENV FFMPEG_VERSION=8.0.1
