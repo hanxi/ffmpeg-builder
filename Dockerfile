@@ -73,6 +73,7 @@ RUN ./configure \
     --enable-libvorbis \
     --enable-libopus \
     --enable-zlib \
+    --pkg-config-flags="--static" \
     --extra-cflags="-static" \
     --extra-ldflags="-static"
 
