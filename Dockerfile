@@ -42,7 +42,12 @@ RUN curl -fL "$FFMPEG_URL" -o ffmpeg.tar.bz2 \
 
 WORKDIR /build/ffmpeg-${FFMPEG_VERSION}
 
-RUN ./configure \
+RUN echo "=== pkg-config check ===" \
+    && pkg-config --libs --cflags vorbis vorbisenc opus ogg 2>&1 \
+    && echo "=== static libs ===" \
+    && find /usr/lib -name "*.a" | sort \
+    && echo "=== configure ===" \
+    && ./configure \
     --prefix=/opt/ffmpeg \
     --disable-everything \
     --enable-ffmpeg \
@@ -74,6 +79,7 @@ RUN ./configure \
     --enable-zlib \
     --extra-cflags="-static" \
     --extra-ldflags="-static" \
+    || (echo "=== configure FAILED, showing config.log ===" && tail -80 ffbuild/config.log && false) \
     && make -j$(nproc) && make install
 
 FROM scratch AS runtime
