@@ -53,19 +53,18 @@ RUN ./configure \
     --disable-debug \
     --disable-doc \
     --disable-network \
-    --enable-gpl \
     --enable-small \
     \
     --enable-protocol=file \
     --enable-protocol=pipe \
     \
-    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,dsf \
-    --enable-muxer=mp3,flac,ogg,wav,matroska,opus,adts,ipod \
+    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv \
+    --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod \
     \
-    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,dsd_lsbf,dsd_msbf \
+    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack \
     --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac \
     \
-    --enable-parser=mpegaudio,aac,flac,vorbis,opus \
+    --enable-parser=mpegaudio,aac,flac,opus \
     \
     --enable-filter=aresample,anull \
     \
