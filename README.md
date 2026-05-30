@@ -1,123 +1,69 @@
-# FFprobe Builder
+# FFmpeg Builder
 
-一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffprobe 可执行文件的最小镜像。
+一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg 和 ffprobe 可执行文件的最小镜像。仅保留音频相关能力。
 
-## 📦 特性
+## 特性
 
 - 基于 Alpine Linux 3.20 构建
-- 静态编译的 ffprobe 可执行文件
+- 静态编译的 ffmpeg + ffprobe 可执行文件
 - 最小化运行时镜像（基于 scratch）
-- 支持多种音视频格式解析
-- 超小镜像体积（约 10MB）
+- 仅包含音频编解码器，体积极小
 
-## 🚀 快速开始
+## 支持的格式
+
+| 功能 | 格式 |
+|------|------|
+| 解码 | MP3, AAC, FLAC, Vorbis, Opus, WAV/PCM, ALAC, APE, WavPack, DSD |
+| 编码 | MP3 (LAME), AAC, FLAC, Vorbis, Opus, WAV/PCM |
+| 容器 | MP3, FLAC, OGG, WAV, M4A (ADTS/iPod), MKA, DSF |
+
+## 快速开始
 
 ### 构建镜像
 
 ```bash
-docker build -t ffprobe .
+docker build -t hanxi/ffmpeg .
+```
+
+### 在其他 Dockerfile 中使用
+
+```dockerfile
+COPY --from=hanxi/ffmpeg /ffmpeg /bin/ffmpeg
+COPY --from=hanxi/ffmpeg /ffprobe /bin/ffprobe
 ```
 
 ### 运行容器
 
 ```bash
-# 显示帮助信息
-docker run --rm ffprobe
+# ffmpeg 转码
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.flac -c:a libmp3lame -q:a 2 /music/output.mp3
 
-# 分析媒体文件
-docker run --rm -v /path/to/media:/media ffprobe /media/video.mp4
-
-# 获取详细的 JSON 格式输出
-docker run --rm -v /path/to/media:/media ffprobe -v quiet -print_format json -show_format -show_streams /media/video.mp4
+# ffprobe 探测
+docker run --rm -v /music:/music --entrypoint /ffprobe hanxi/ffmpeg \
+  -show_format -show_streams /music/input.mp3
 ```
 
-## 🛠️ 技术细节
-
-### 编译配置
-
-该镜像使用以下配置编译 ffprobe：
+## 转码示例
 
 ```bash
-./configure \
-    --prefix=/opt/ffprobe \
-    --disable-everything \
-    --disable-ffmpeg \
-    --disable-ffplay \
-    --enable-ffprobe \
-    --enable-static \
-    --disable-shared \
-    --disable-debug \
-    --disable-doc \
-    --disable-network \
-    --enable-protocol=file \
-    --enable-demuxer=mov,matroska,mp3,ogg,wav,flac,aac \
-    --enable-parser=aac,mpeg4video \
-    --enable-decoder=aac,mp3,flac,pcm_s16le,vorbis \
-    --enable-zlib \
-    --extra-cflags="-static" \
-    --extra-ldflags="-static"
+# FLAC -> MP3
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.flac -c:a libmp3lame -q:a 2 /music/output.mp3
+
+# MP3 -> FLAC
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.mp3 -c:a flac /music/output.flac
+
+# Any -> OGG/Opus
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.wav -c:a libopus -b:a 128k /music/output.opus
+
+# Any -> AAC/M4A
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.flac -c:a aac -b:a 256k /music/output.m4a
 ```
 
-### 支持的格式
-
-**Demuxers:**
-- mov (MP4/MOV)
-- matroska (MKV)
-- mp3
-- ogg
-- wav
-- flac
-- aac
-
-**Decoders:**
-- aac
-- mp3
-- flac
-- pcm_s16le
-- vorbis
-
-**Parsers:**
-- aac
-- mpeg4video
-
-## 📊 镜像大小
-
-```
-REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
-ffprobe      latest    xxxxxxxxxx     xx minutes ago   10.2MB
-```
-
-## 📝 使用示例
-
-### 基本用法
-
-```bash
-# 查看文件基本信息
-docker run --rm -v $(pwd):/data ffprobe /data/sample.mp4
-
-# 显示详细流信息
-docker run --rm -v $(pwd):/data ffprobe -show_streams /data/sample.mp4
-
-# 以 JSON 格式输出
-docker run --rm -v $(pwd):/data ffprobe -v quiet -print_format json -show_format /data/sample.mp4
-```
-
-### 在脚本中使用
-
-```bash
-#!/bin/bash
-VIDEO_FILE="/path/to/video.mp4"
-
-# 获取视频时长
-duration=$(docker run --rm -v "$(dirname $VIDEO_FILE)":/data ffprobe -v quiet -show_entries format=duration -of csv=p=0 /data/$(basename $VIDEO_FILE))
-
-echo "视频时长: ${duration} 秒"
-```
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📄 许可证
+## 许可证
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。

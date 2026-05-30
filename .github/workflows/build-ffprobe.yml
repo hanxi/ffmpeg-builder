@@ -1,4 +1,4 @@
-name: Build and Push FFprobe
+name: Build and Push FFmpeg
 
 on:
   push:
@@ -29,12 +29,12 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: hanxi/ffprobe
+        images: hanxi/ffmpeg
         tags: |
           type=ref,event=branch
           type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Build and push FFprobe
+    - name: Build and push
       uses: docker/build-push-action@v5
       with:
         context: .
