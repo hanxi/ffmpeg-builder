@@ -88,15 +88,32 @@ WORKDIR /src
 RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
     && tar -xzf chromaprint.tar.gz \
     && cd chromaprint-${CHROMAPRINT_VERSION} \
-    && sed -i '/target_link_libraries(fpcalc PRIVATE fpcalc_libs)/a\target_link_libraries(fpcalc PRIVATE mp3lame vorbisenc vorbis ogg opus z m)' src/cmd/CMakeLists.txt \
     && cmake -B build \
         -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_TOOLS=ON \
+        -DBUILD_TOOLS=OFF \
+        -DBUILD_TESTS=OFF \
         -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_EXE_LINKER_FLAGS="-static" \
         -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
         -DCMAKE_PREFIX_PATH=/opt/ffmpeg \
-    && cmake --build build -j$(nproc)
+    && cmake --build build -j$(nproc) \
+    && g++ -static -O2 \
+        -DHAVE_CONFIG_H -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DCHROMAPRINT_NODLL \
+        -I build -I src -I /opt/ffmpeg/include \
+        -o build/fpcalc src/cmd/fpcalc.cpp \
+        -Wl,--start-group \
+        build/src/libchromaprint.a \
+        /opt/ffmpeg/lib/libavformat.a \
+        /opt/ffmpeg/lib/libavcodec.a \
+        /opt/ffmpeg/lib/libswresample.a \
+        /opt/ffmpeg/lib/libavutil.a \
+        /usr/lib/libmp3lame.a \
+        /usr/lib/libvorbisenc.a \
+        /usr/lib/libvorbis.a \
+        /usr/lib/libogg.a \
+        /usr/lib/libopus.a \
+        /usr/lib/libz.a \
+        -lm -lpthread \
+        -Wl,--end-group
 
 FROM scratch AS runtime
 
