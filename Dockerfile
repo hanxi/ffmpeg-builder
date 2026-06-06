@@ -79,10 +79,28 @@ RUN ./configure \
 
 RUN make -j$(nproc) && make install
 
+# 构建 Chromaprint fpcalc（静态链接，复用上面编译的 FFmpeg 库）
+ENV CHROMAPRINT_VERSION=1.6.0
+
+WORKDIR /src
+
+RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
+    && tar -xzf chromaprint.tar.gz \
+    && cd chromaprint-${CHROMAPRINT_VERSION} \
+    && cmake -B build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_TOOLS=ON \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_EXE_LINKER_FLAGS="-static" \
+        -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
+        -DCMAKE_PREFIX_PATH=/opt/ffmpeg \
+    && cmake --build build -j$(nproc)
+
 FROM scratch AS runtime
 
 COPY --from=builder /opt/ffmpeg/bin/ffmpeg /ffmpeg
 COPY --from=builder /opt/ffmpeg/bin/ffprobe /ffprobe
+COPY --from=builder /src/chromaprint-1.6.0/build/fpcalc /fpcalc
 
 ENTRYPOINT ["/ffmpeg"]
 CMD ["-h"]

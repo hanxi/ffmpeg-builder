@@ -1,13 +1,14 @@
 # FFmpeg Builder
 
-一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg 和 ffprobe 可执行文件的最小镜像。仅保留音频相关能力。
+一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg、ffprobe 和 fpcalc 可执行文件的最小镜像。仅保留音频相关能力。
 
 ## 特性
 
 - 基于 Alpine Linux 3.20 构建
-- 静态编译的 ffmpeg + ffprobe 可执行文件
+- 静态编译的 ffmpeg + ffprobe + fpcalc 可执行文件
 - 最小化运行时镜像（基于 scratch）
 - 仅包含音频编解码器，体积极小
+- fpcalc 用于 AcoustID 音频指纹识别
 
 ## 支持的格式
 
@@ -30,6 +31,7 @@ docker build -t hanxi/ffmpeg .
 ```dockerfile
 COPY --from=hanxi/ffmpeg /ffmpeg /bin/ffmpeg
 COPY --from=hanxi/ffmpeg /ffprobe /bin/ffprobe
+COPY --from=hanxi/ffmpeg /fpcalc /bin/fpcalc
 ```
 
 ### 运行容器
