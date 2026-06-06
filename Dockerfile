@@ -3,6 +3,7 @@ LABEL stage=ffmpeg-builder
 
 RUN apk add --no-cache \
     build-base \
+    cmake \
     yasm \
     nasm \
     pkgconfig \
