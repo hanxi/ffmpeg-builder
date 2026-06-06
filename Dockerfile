@@ -59,11 +59,11 @@ RUN ./configure \
     --enable-protocol=file \
     --enable-protocol=pipe \
     \
-    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf \
+    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2 \
     --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod \
     \
-    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2 \
-    --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac \
+    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png \
+    --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac,mjpeg,png \
     \
     --enable-parser=mpegaudio,aac,flac,opus \
     \
