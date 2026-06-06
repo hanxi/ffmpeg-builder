@@ -88,11 +88,12 @@ WORKDIR /src
 RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
     && tar -xzf chromaprint.tar.gz \
     && cd chromaprint-${CHROMAPRINT_VERSION} \
+    && sed -i '/target_link_libraries(fpcalc PRIVATE fpcalc_libs)/a\target_link_libraries(fpcalc PRIVATE mp3lame vorbisenc vorbis ogg opus z m)' src/cmd/CMakeLists.txt \
     && cmake -B build \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_TOOLS=ON \
         -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_EXE_LINKER_FLAGS="-static -lz -lmp3lame -lvorbisenc -lvorbis -logg -lopus -lm" \
+        -DCMAKE_EXE_LINKER_FLAGS="-static" \
         -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
         -DCMAKE_PREFIX_PATH=/opt/ffmpeg \
     && cmake --build build -j$(nproc)
