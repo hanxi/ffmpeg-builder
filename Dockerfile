@@ -100,19 +100,11 @@ RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROM
         -DHAVE_CONFIG_H -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DCHROMAPRINT_NODLL \
         -I build -I src -I /opt/ffmpeg/include \
         -o build/fpcalc src/cmd/fpcalc.cpp \
+        -Lbuild/src -L/opt/ffmpeg/lib \
         -Wl,--start-group \
-        build/src/libchromaprint.a \
-        /opt/ffmpeg/lib/libavformat.a \
-        /opt/ffmpeg/lib/libavcodec.a \
-        /opt/ffmpeg/lib/libswresample.a \
-        /opt/ffmpeg/lib/libavutil.a \
-        /usr/lib/libmp3lame.a \
-        /usr/lib/libvorbisenc.a \
-        /usr/lib/libvorbis.a \
-        /usr/lib/libogg.a \
-        /usr/lib/libopus.a \
-        /usr/lib/libz.a \
-        -lm -lpthread \
+        -lchromaprint \
+        -lavformat -lavcodec -lswresample -lavutil \
+        -lmp3lame -lvorbisenc -lvorbis -logg -lopus -lz -lm -lpthread \
         -Wl,--end-group
 
 FROM scratch AS runtime
