@@ -92,7 +92,7 @@ RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROM
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_TOOLS=ON \
         -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_EXE_LINKER_FLAGS="-static" \
+        -DCMAKE_EXE_LINKER_FLAGS="-static -lz -lmp3lame -lvorbisenc -lvorbis -logg -lopus -lm" \
         -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
         -DCMAKE_PREFIX_PATH=/opt/ffmpeg \
     && cmake --build build -j$(nproc)
