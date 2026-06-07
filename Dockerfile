@@ -39,12 +39,13 @@ RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROM
     && cd chromaprint-${CHROMAPRINT_VERSION} \
     && cmake -B build \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr \
         -DBUILD_TOOLS=OFF \
         -DBUILD_TESTS=OFF \
         -DBUILD_SHARED_LIBS=OFF \
         -DFFT_LIB=kissfft \
     && cmake --build build -j$(nproc) \
-    && cmake --install build --prefix /opt/chromaprint
+    && cmake --install build
 
 # 构建 ffmpeg + ffprobe（仅音频，完全静态链接，内置 chromaprint muxer）
 ENV FFMPEG_VERSION=8.0.1
@@ -56,8 +57,6 @@ RUN curl -fL "$FFMPEG_URL" -o ffmpeg.tar.bz2 \
     && tar -xjf ffmpeg.tar.bz2
 
 WORKDIR /build/ffmpeg-${FFMPEG_VERSION}
-
-ENV PKG_CONFIG_PATH=/opt/chromaprint/lib/pkgconfig
 
 RUN ./configure \
     --prefix=/opt/ffmpeg \
@@ -91,8 +90,8 @@ RUN ./configure \
     --enable-libopus \
     --enable-zlib \
     --pkg-config-flags="--static" \
-    --extra-cflags="-static -I/opt/chromaprint/include" \
-    --extra-ldflags="-static -L/opt/chromaprint/lib"
+    --extra-cflags="-static" \
+    --extra-ldflags="-static"
 
 RUN make -j$(nproc) && make install
 
