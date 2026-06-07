@@ -32,7 +32,21 @@ RUN curl -fL "https://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.
     && ./configure --prefix=/usr --enable-static --disable-shared --disable-doc --disable-extra-programs \
     && make -j$(nproc) && make install
 
-# 构建 ffmpeg + ffprobe（仅音频，完全静态链接）
+# 构建 libchromaprint 静态库（使用内置 kissfft，不依赖 ffmpeg）
+ENV CHROMAPRINT_VERSION=1.6.0
+RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
+    && tar -xzf chromaprint.tar.gz \
+    && cd chromaprint-${CHROMAPRINT_VERSION} \
+    && cmake -B build \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_TOOLS=OFF \
+        -DBUILD_TESTS=OFF \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DFFT_LIB=kissfft \
+    && cmake --build build -j$(nproc) \
+    && cmake --install build --prefix /opt/chromaprint
+
+# 构建 ffmpeg + ffprobe（仅音频，完全静态链接，内置 chromaprint muxer）
 ENV FFMPEG_VERSION=8.0.1
 ENV FFMPEG_URL=https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2
 
@@ -43,7 +57,6 @@ RUN curl -fL "$FFMPEG_URL" -o ffmpeg.tar.bz2 \
 
 WORKDIR /build/ffmpeg-${FFMPEG_VERSION}
 
-# 分开 configure 和 make 以便定位错误
 RUN ./configure \
     --prefix=/opt/ffmpeg \
     --disable-everything \
@@ -61,7 +74,7 @@ RUN ./configure \
     --enable-protocol=pipe \
     \
     --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2 \
-    --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod \
+    --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint \
     \
     --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png \
     --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac,mjpeg,png \
@@ -70,48 +83,21 @@ RUN ./configure \
     \
     --enable-filter=aresample,anull \
     \
+    --enable-chromaprint \
     --enable-libmp3lame \
     --enable-libvorbis \
     --enable-libopus \
     --enable-zlib \
     --pkg-config-flags="--static" \
-    --extra-cflags="-static" \
-    --extra-ldflags="-static"
+    --extra-cflags="-static -I/opt/chromaprint/include" \
+    --extra-ldflags="-static -L/opt/chromaprint/lib"
 
 RUN make -j$(nproc) && make install
-
-# 构建 Chromaprint fpcalc（静态链接，复用上面编译的 FFmpeg 库）
-ENV CHROMAPRINT_VERSION=1.6.0
-
-WORKDIR /src
-
-RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
-    && tar -xzf chromaprint.tar.gz \
-    && cd chromaprint-${CHROMAPRINT_VERSION} \
-    && cmake -B build \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DBUILD_TOOLS=OFF \
-        -DBUILD_TESTS=OFF \
-        -DBUILD_SHARED_LIBS=OFF \
-        -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" \
-        -DCMAKE_PREFIX_PATH=/opt/ffmpeg \
-    && cmake --build build -j$(nproc) \
-    && g++ -static -O2 \
-        -DHAVE_CONFIG_H -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DCHROMAPRINT_NODLL \
-        -I build -I src -I /opt/ffmpeg/include \
-        -o build/fpcalc src/cmd/fpcalc.cpp \
-        -Lbuild/src -L/opt/ffmpeg/lib \
-        -Wl,--start-group \
-        -lchromaprint \
-        -lavformat -lavcodec -lswresample -lavutil \
-        -lmp3lame -lvorbisenc -lvorbis -logg -lopus -lz -lm -lpthread \
-        -Wl,--end-group
 
 FROM scratch AS runtime
 
 COPY --from=builder /opt/ffmpeg/bin/ffmpeg /ffmpeg
 COPY --from=builder /opt/ffmpeg/bin/ffprobe /ffprobe
-COPY --from=builder /src/chromaprint-1.6.0/build/fpcalc /fpcalc
 
 ENTRYPOINT ["/ffmpeg"]
 CMD ["-h"]

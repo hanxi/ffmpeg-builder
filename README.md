@@ -1,14 +1,14 @@
 # FFmpeg Builder
 
-一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg、ffprobe 和 fpcalc 可执行文件的最小镜像。仅保留音频相关能力。
+一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg 和 ffprobe 可执行文件的最小镜像。仅保留音频相关能力，内置 chromaprint 音频指纹支持。
 
 ## 特性
 
 - 基于 Alpine Linux 3.20 构建
-- 静态编译的 ffmpeg + ffprobe + fpcalc 可执行文件
+- 静态编译的 ffmpeg + ffprobe 可执行文件
 - 最小化运行时镜像（基于 scratch）
 - 仅包含音频编解码器，体积极小
-- fpcalc 用于 AcoustID 音频指纹识别
+- 内置 chromaprint muxer，支持 AcoustID 音频指纹识别（无需独立 fpcalc）
 
 ## 支持的格式
 
@@ -16,7 +16,7 @@
 |------|------|
 | 解码 | MP3, AAC, FLAC, Vorbis, Opus, WAV/PCM, ALAC, APE, WavPack, DSD |
 | 编码 | MP3 (LAME), AAC, FLAC, Vorbis, Opus, WAV/PCM |
-| 容器 | MP3, FLAC, OGG, WAV, M4A (ADTS/iPod), MKA, DSF |
+| 容器 | MP3, FLAC, OGG, WAV, M4A (ADTS/iPod), MKA, DSF, Chromaprint |
 
 ## 快速开始
 
@@ -31,7 +31,6 @@ docker build -t hanxi/ffmpeg .
 ```dockerfile
 COPY --from=hanxi/ffmpeg /ffmpeg /bin/ffmpeg
 COPY --from=hanxi/ffmpeg /ffprobe /bin/ffprobe
-COPY --from=hanxi/ffmpeg /fpcalc /bin/fpcalc
 ```
 
 ### 运行容器
@@ -44,6 +43,10 @@ docker run --rm -v /music:/music hanxi/ffmpeg \
 # ffprobe 探测
 docker run --rm -v /music:/music --entrypoint /ffprobe hanxi/ffmpeg \
   -show_format -show_streams /music/input.mp3
+
+# 提取音频指纹（chromaprint）
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.mp3 -f chromaprint -fp_format compressed -
 ```
 
 ## 转码示例
