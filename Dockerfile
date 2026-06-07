@@ -45,16 +45,8 @@ RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROM
         -DBUILD_SHARED_LIBS=OFF \
         -DFFT_LIB=kissfft \
     && cmake --build build -j$(nproc) \
-    && cmake --install build
-
-# 验证 chromaprint 安装
-RUN ls -la /usr/lib/libchromaprint* /usr/lib/pkgconfig/libchromaprint* /usr/include/chromaprint.h 2>&1; \
-    pkg-config --libs libchromaprint 2>&1; \
-    pkg-config --static --libs libchromaprint 2>&1; \
-    pkg-config --cflags libchromaprint 2>&1; \
-    echo "---pkg-config search path---"; pkg-config --variable pc_path pkg-config 2>&1; \
-    find /usr -name "*.pc" -path "*chroma*" 2>&1; \
-    true
+    && cmake --install build \
+    && echo 'Libs.private: -lstdc++ -lm' >> /usr/lib/pkgconfig/libchromaprint.pc
 
 # 构建 ffmpeg + ffprobe（仅音频，完全静态链接，内置 chromaprint muxer）
 ENV FFMPEG_VERSION=8.0.1
