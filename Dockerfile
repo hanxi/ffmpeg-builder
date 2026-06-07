@@ -57,6 +57,8 @@ RUN curl -fL "$FFMPEG_URL" -o ffmpeg.tar.bz2 \
 
 WORKDIR /build/ffmpeg-${FFMPEG_VERSION}
 
+ENV PKG_CONFIG_PATH=/opt/chromaprint/lib/pkgconfig
+
 RUN ./configure \
     --prefix=/opt/ffmpeg \
     --disable-everything \
