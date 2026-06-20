@@ -12,6 +12,8 @@ RUN apk add --no-cache \
     lame-dev \
     libogg-dev \
     libogg-static \
+    openssl-dev \
+    openssl-libs-static \
     curl
 
 WORKDIR /src
@@ -69,11 +71,15 @@ RUN ./configure \
     --disable-shared \
     --disable-debug \
     --disable-doc \
-    --disable-network \
     --enable-small \
     \
     --enable-protocol=file \
     --enable-protocol=pipe \
+    --enable-protocol=http \
+    --enable-protocol=https \
+    --enable-protocol=tcp \
+    --enable-protocol=tls \
+    --enable-openssl \
     \
     --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2 \
     --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint \
