@@ -78,6 +78,7 @@ RUN ./configure \
     --enable-protocol=http \
     --enable-protocol=https \
     --enable-protocol=tcp \
+    --enable-protocol=udp \
     --enable-protocol=tls \
     --enable-openssl \
     \
