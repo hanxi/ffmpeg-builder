@@ -90,7 +90,7 @@ RUN ./configure \
     \
     --enable-parser=mpegaudio,aac,flac,opus \
     \
-    --enable-filter=aresample,anull \
+    --enable-filter=aresample,anull,loudnorm \
     \
     --enable-chromaprint \
     --enable-libmp3lame \
