@@ -1,22 +1,27 @@
 # FFmpeg Builder
 
-一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg 和 ffprobe 可执行文件的最小镜像。仅保留音频相关能力，内置 chromaprint 音频指纹支持。
+一个轻量级的 Docker 镜像构建器，用于创建包含静态编译的 ffmpeg 和 ffprobe 可执行文件的最小镜像。保留音频能力 + 视频解码转 HLS（H.264/AAC）能力，内置 chromaprint 音频指纹支持。
 
 ## 特性
 
 - 基于 Alpine Linux 3.20 构建
 - 静态编译的 ffmpeg + ffprobe 可执行文件
 - 最小化运行时镜像（基于 scratch）
-- 仅包含音频编解码器，体积极小
+- 音频编解码 + 常见视频容器解码、libx264 编码输出 HLS
 - 内置 chromaprint muxer，支持 AcoustID 音频指纹识别（无需独立 fpcalc）
 
 ## 支持的格式
 
 | 功能 | 格式 |
 |------|------|
-| 解码 | MP3, AAC, FLAC, Vorbis, Opus, WAV/PCM, ALAC, APE, WavPack, DSD |
-| 编码 | MP3 (LAME), AAC, FLAC, Vorbis, Opus, WAV/PCM |
-| 容器 | MP3, FLAC, OGG, WAV, M4A (ADTS/iPod), MKA, DSF, Chromaprint |
+| 音频解码 | MP3, MP2, AAC, FLAC, Vorbis, Opus, WAV/PCM, ALAC, APE, WavPack, WMA, AC3/EAC3, DTS, Cook (RealAudio) |
+| 音频编码 | MP3 (LAME), AAC, FLAC, Vorbis, Opus, WAV/PCM |
+| 视频解码 | H.264, HEVC, VP8/VP9, MPEG-1/2, MPEG-4/DivX, MSMPEG4, WMV1/2/3, VC-1, FLV1, H.263, RealVideo (RV10-40), Theora |
+| 视频编码 | H.264 (libx264) |
+| 容器（读） | MP3, FLAC, OGG, WAV, MP4/MOV/M4V/3GP, MKV/WebM, ASF/WMA/WMV, APE, WV, MPEG-PS (MPG), MPEG-TS, AVI, FLV, RM/RMVB |
+| 容器（写） | MP3, FLAC, OGG, WAV, M4A (ADTS/iPod), MKA, HLS (m3u8+TS), MPEG-TS, Chromaprint |
+
+> 注意：因静态链接 libx264，构建产物以 `--enable-gpl` 编译，二进制遵循 GPL 许可分发。
 
 ## 快速开始
 

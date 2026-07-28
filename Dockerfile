@@ -3,6 +3,7 @@ LABEL stage=ffmpeg-builder
 
 RUN apk add --no-cache \
     build-base \
+    bash \
     cmake \
     yasm \
     nasm \
@@ -50,7 +51,14 @@ RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROM
     && cmake --install build \
     && echo 'Libs.private: -lstdc++ -lm' >> /usr/lib/pkgconfig/libchromaprint.pc
 
-# 构建 ffmpeg + ffprobe（仅音频，完全静态链接，内置 chromaprint muxer）
+# 构建 libx264 静态库（Web 视频 HLS 转码用；Alpine 的 x264-dev 无静态库）
+RUN curl -fL "https://code.videolan.org/videolan/x264/-/archive/stable/x264-stable.tar.bz2" -o x264.tar.bz2 \
+    && tar -xjf x264.tar.bz2 \
+    && cd x264-stable \
+    && ./configure --prefix=/usr --enable-static --enable-pic --disable-cli --disable-opencl \
+    && make -j$(nproc) && make install
+
+# 构建 ffmpeg + ffprobe（音频 + 视频转 HLS，完全静态链接，内置 chromaprint muxer）
 ENV FFMPEG_VERSION=8.0.1
 ENV FFMPEG_URL=https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2
 
@@ -82,20 +90,26 @@ RUN ./configure \
     --enable-protocol=tls \
     --enable-openssl \
     \
-    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2 \
-    --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint \
+    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2,mpegps,mpegts,avi,flv,rm,mpegvideo,h264,hevc,m4v,ac3 \
+    --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint,hls,mpegts \
     \
-    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png \
-    --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac,mjpeg,png \
+    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png,mp2,mp2float,ac3,eac3,dca,cook \
+    --enable-decoder=h264,hevc,vp8,vp9,mpeg1video,mpeg2video,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,wmv1,wmv2,wmv3,vc1,flv,h263,rv10,rv20,rv30,rv40,theora \
+    --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac,mjpeg,png,libx264 \
     \
-    --enable-parser=mpegaudio,aac,flac,opus \
+    --enable-parser=mpegaudio,aac,flac,opus,h264,hevc,mpegvideo,mpeg4video,vp8,vp9,vc1,ac3,dca \
     \
-    --enable-filter=aresample,anull,loudnorm \
+    --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc,extract_extradata \
     \
+    --enable-filter=aresample,anull,loudnorm,scale,format,null \
+    \
+    --enable-gpl \
+    --enable-version3 \
     --enable-chromaprint \
     --enable-libmp3lame \
     --enable-libvorbis \
     --enable-libopus \
+    --enable-libx264 \
     --enable-zlib \
     --pkg-config-flags="--static" \
     --extra-cflags="-static" \
