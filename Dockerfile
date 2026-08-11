@@ -101,7 +101,7 @@ RUN ./configure \
     \
     --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc,extract_extradata \
     \
-    --enable-filter=aresample,anull,loudnorm,scale,format,null \
+    --enable-filter=aresample,anull,loudnorm,scale,format,null,atempo \
     \
     --enable-gpl \
     --enable-version3 \

@@ -8,6 +8,7 @@
 - 静态编译的 ffmpeg + ffprobe 可执行文件
 - 最小化运行时镜像（基于 scratch）
 - 音频编解码 + 常见视频容器解码、libx264 编码输出 HLS
+- 音频滤镜：aresample（重采样）、loudnorm（EBU R128 音量均衡）、atempo（变速不变调，0.5–2.0 倍速播放）
 - 内置 chromaprint muxer，支持 AcoustID 音频指纹识别（无需独立 fpcalc）
 
 ## 支持的格式
@@ -72,6 +73,11 @@ docker run --rm -v /music:/music hanxi/ffmpeg \
 # Any -> AAC/M4A
 docker run --rm -v /music:/music hanxi/ffmpeg \
   -i /music/input.flac -c:a aac -b:a 256k /music/output.m4a
+
+# 变速不变调（atempo，0.5–2.0，超出需链式拼接）
+docker run --rm -v /music:/music hanxi/ffmpeg \
+  -i /music/input.mp3 -map 0:a:0 -vn -codec:a libmp3lame -b:a 320k \
+  -af atempo=1.5 -write_xing 0 -f mp3 /music/output_1.5x.mp3
 ```
 
 ## 许可证
