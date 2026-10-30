@@ -25,6 +25,22 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    - name: Install fixture generator
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends ffmpeg
+
+    - name: Build native image for HLS input tests
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64
+        load: true
+        tags: ffmpeg-hls-test:local
+
+    - name: Test built FFmpeg and FFprobe with HLS inputs
+      run: python3 tests/hls_input.py --image ffmpeg-hls-test:local
+
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5

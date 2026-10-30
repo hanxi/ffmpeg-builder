@@ -88,9 +88,10 @@ RUN ./configure \
     --enable-protocol=tcp \
     --enable-protocol=udp \
     --enable-protocol=tls \
+    --enable-protocol=crypto \
     --enable-openssl \
     \
-    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2,mpegps,mpegts,avi,flv,rm,mpegvideo,h264,hevc,m4v,ac3 \
+    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2,mpegps,mpegts,avi,flv,rm,mpegvideo,h264,hevc,m4v,ac3,hls \
     --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint,hls,mpegts \
     \
     --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png,mp2,mp2float,ac3,eac3,dca,cook \
