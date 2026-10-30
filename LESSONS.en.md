@@ -12,3 +12,11 @@
 - Release boundary: after this repository is fixed, publish its tool image and let the Songloft build mirror it before recreating containers. Songloft's binary updater does not replace ffmpeg/ffprobe; the application version alone does not prove tool capabilities.
 - Not run during local validation: ARM artifact execution, remote CI, and iPhone Safari. amd64 and backend checks do not replace those validations.
 - Seen 1× (2026-10-30). Status: this fix; image builds, parent gitlink synchronization, and device acceptance must be checked against subsequent delivery records for the corresponding commits.
+
+## BUILD-002: Source downloads need explicit, bounded retries for connection resets
+
+- Scope: source downloads in multi-architecture image builds; [CI for dd9a8df](https://github.com/hanxi/ffmpeg-builder/actions/runs/41065204390).
+- Failure evidence: the amd64 build and all three HLS artifact tests passed, but the arm/v7 FFmpeg source download encountered a connection reset. `curl` exited 35 and stopped the entire multi-architecture build. Log: `/tmp/songloft-541-ffmpeg-ci-failed.log`. This is a download failure, not a media regression; an unpublished image is not an available package.
+- Rule and fix: all source downloads explicitly use `--retry 5 --retry-all-errors` to cover TLS/connection resets, with connection, transfer, and retry time limits. Preserve `--fail`, TLS verification, and extraction only after successful download; do not ignore errors to continue building.
+- Done right: a local TLS server interrupted the first connection. The old command exited 35 after one connection; new options extracted from the Dockerfile retried successfully, with two connections and complete file content. Log: `/tmp/songloft-541-curl-retry-check.log`; verify actual multi-architecture publication against CI for the fix commit.
+- Seen 1× (2026-10-30). Status: build resilience fix; the same incident does not increment BUILD-001.

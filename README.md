@@ -8,6 +8,7 @@
 
 - 基于 Alpine Linux 3.20 构建
 - 静态编译的 ffmpeg + ffprobe 可执行文件
+- 源码下载最多重试 5 次，包括 TLS/连接重置，并设置连接、单次下载及重试时间上限
 - 最小化运行时镜像（基于 scratch）
 - 音频编解码 + 常见视频容器解码、libx264 编码输出 HLS
 - 普通 HLS 输入与 AES-128 加密分片读取（`hls` demuxer + `crypto` 协议）

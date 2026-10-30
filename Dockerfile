@@ -21,7 +21,9 @@ WORKDIR /src
 
 # 构建 libvorbis 静态库（Alpine 无 vorbis-static 包）
 ENV VORBIS_VERSION=1.3.7
-RUN curl -fL "https://downloads.xiph.org/releases/vorbis/libvorbis-${VORBIS_VERSION}.tar.xz" -o libvorbis.tar.xz \
+RUN curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+    --retry-max-time 1200 --connect-timeout 30 --max-time 600 \
+    "https://downloads.xiph.org/releases/vorbis/libvorbis-${VORBIS_VERSION}.tar.xz" -o libvorbis.tar.xz \
     && tar -xJf libvorbis.tar.xz \
     && cd libvorbis-${VORBIS_VERSION} \
     && ./configure --prefix=/usr --enable-static --disable-shared --disable-docs --disable-examples \
@@ -29,7 +31,9 @@ RUN curl -fL "https://downloads.xiph.org/releases/vorbis/libvorbis-${VORBIS_VERS
 
 # 构建 libopus 静态库（Alpine 无 opus-static 包）
 ENV OPUS_VERSION=1.5.2
-RUN curl -fL "https://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.gz" -o opus.tar.gz \
+RUN curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+    --retry-max-time 1200 --connect-timeout 30 --max-time 600 \
+    "https://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.gz" -o opus.tar.gz \
     && tar -xzf opus.tar.gz \
     && cd opus-${OPUS_VERSION} \
     && ./configure --prefix=/usr --enable-static --disable-shared --disable-doc --disable-extra-programs \
@@ -37,7 +41,9 @@ RUN curl -fL "https://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.
 
 # 构建 libchromaprint 静态库（使用内置 kissfft，不依赖 ffmpeg）
 ENV CHROMAPRINT_VERSION=1.6.0
-RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
+RUN curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+    --retry-max-time 1200 --connect-timeout 30 --max-time 600 \
+    "https://github.com/acoustid/chromaprint/releases/download/v${CHROMAPRINT_VERSION}/chromaprint-${CHROMAPRINT_VERSION}.tar.gz" -o chromaprint.tar.gz \
     && tar -xzf chromaprint.tar.gz \
     && cd chromaprint-${CHROMAPRINT_VERSION} \
     && cmake -B build \
@@ -52,7 +58,9 @@ RUN curl -fL "https://github.com/acoustid/chromaprint/releases/download/v${CHROM
     && echo 'Libs.private: -lstdc++ -lm' >> /usr/lib/pkgconfig/libchromaprint.pc
 
 # 构建 libx264 静态库（Web 视频 HLS 转码用；Alpine 的 x264-dev 无静态库）
-RUN curl -fL "https://code.videolan.org/videolan/x264/-/archive/stable/x264-stable.tar.bz2" -o x264.tar.bz2 \
+RUN curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+    --retry-max-time 1200 --connect-timeout 30 --max-time 600 \
+    "https://code.videolan.org/videolan/x264/-/archive/stable/x264-stable.tar.bz2" -o x264.tar.bz2 \
     && tar -xjf x264.tar.bz2 \
     && cd x264-stable \
     && ./configure --prefix=/usr --enable-static --enable-pic --disable-cli --disable-opencl \
@@ -64,7 +72,9 @@ ENV FFMPEG_URL=https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2
 
 WORKDIR /build
 
-RUN curl -fL "$FFMPEG_URL" -o ffmpeg.tar.bz2 \
+RUN curl -fL --retry 5 --retry-all-errors --retry-delay 3 \
+    --retry-max-time 1200 --connect-timeout 30 --max-time 600 \
+    "$FFMPEG_URL" -o ffmpeg.tar.bz2 \
     && tar -xjf ffmpeg.tar.bz2
 
 WORKDIR /build/ffmpeg-${FFMPEG_VERSION}

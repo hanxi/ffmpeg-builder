@@ -8,6 +8,7 @@ A lightweight Docker builder for minimal images containing static ffmpeg and ffp
 
 - Built on Alpine Linux 3.20
 - Static ffmpeg and ffprobe executables
+- Source downloads retry up to five times, including TLS/connection resets, with connection, transfer, and retry time limits
 - Minimal scratch runtime image
 - Audio codecs, common video containers, and libx264 HLS output
 - Plain HLS input and AES-128 encrypted segments (`hls` demuxer and `crypto` protocol)

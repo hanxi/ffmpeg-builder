@@ -12,3 +12,11 @@
 - 发布边界：修复本仓库后仍需推送工具镜像，等待 Songloft 构建同步基础镜像并重建容器。Songloft 的二进制在线升级不会替换 ffmpeg/ffprobe，不能据主程序版本推断工具能力。
 - 本地验证阶段 Not run：ARM 产物运行、远端 CI 和 iPhone Safari；amd64 及后端验证不替代这些验收。
 - Seen 1× (2026-10-30)。状态：本次修复；镜像构建、主仓库指针同步及设备验收以对应提交的后续交付记录为准。
+
+## BUILD-002：源码下载的连接重置需要显式、有限重试
+
+- 范围：多架构镜像的源码下载；[dd9a8df 的 CI](https://github.com/hanxi/ffmpeg-builder/actions/runs/41065204390)。
+- 失败证据：amd64 构建和三组 HLS 产物测试通过，但 arm/v7 下载 FFmpeg 源码时遭遇连接重置，`curl` 返回 35，整个多架构构建中止；日志 `/tmp/songloft-541-ffmpeg-ci-failed.log`。这是下载失败，不能当成媒体回归或把未发布镜像当成可用包。
+- 规则与修复：全部源码下载显式设置 `--retry 5 --retry-all-errors`，使 TLS/连接重置也能重试；同时限制连接、单次下载和重试时间。保留 `--fail`、TLS 校验及成功后才解包的顺序，不用忽略错误来继续构建。
+- Done right：本地 TLS 服务首次连接立即中断，旧命令返回 35、仅连接一次；Dockerfile 中提取的新参数重试后成功，连接两次且文件内容完整。日志 `/tmp/songloft-541-curl-retry-check.log`；实际多架构发布结果另按修复提交的 CI 核对。
+- Seen 1× (2026-10-30)。状态：构建韧性修复；同一事故不增加 BUILD-001 的次数。
