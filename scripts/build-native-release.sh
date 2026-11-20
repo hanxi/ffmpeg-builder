@@ -35,7 +35,7 @@ common=(
   --enable-filter=aresample,anull,loudnorm,scale,format,aformat,null,atempo
   --enable-gpl --enable-version3
   --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264 --enable-chromaprint
-  --pkg-config-flags=--static
+  --pkg-config=pkg-config --pkg-config-flags=--static
 )
 
 case "$target" in
@@ -91,7 +91,12 @@ elif [[ "$target" == windows-* ]]; then
   common+=(--enable-schannel --extra-ldflags="-static-libgcc")
 fi
 
-./configure "${common[@]}" ${FFMPEG_EXTRA_CONFIGURE_ARGS:-}
+if ! ./configure "${common[@]}" ${FFMPEG_EXTRA_CONFIGURE_ARGS:-}; then
+  if [[ -f ffbuild/config.log ]]; then
+    tail -n 140 ffbuild/config.log >&2
+  fi
+  exit 1
+fi
 if [[ "$target" == windows-x86_64 ]]; then
   make -j2
 else

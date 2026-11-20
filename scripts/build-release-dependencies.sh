@@ -41,6 +41,8 @@ case "$system" in
   Android)
     export PATH="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH"
     export CXX="${CC%clang}clang++"
+    export STRINGS=llvm-strings STRIP=llvm-strip
+    export PKGCONFIG=pkg-config
     cmake_args+=(-DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake"
       -DANDROID_ABI="${target#android-}" -DANDROID_PLATFORM="android-$ANDROID_API" -DANDROID_STL=c++_static)
     ;;
@@ -78,6 +80,10 @@ build_autotools lame --disable-frontend --disable-decoder
 fetch ogg https://downloads.xiph.org/releases/ogg/libogg-1.3.5.tar.xz
 build_autotools ogg
 fetch vorbis https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz
+if [[ "$system" == Darwin || "$system" == iOS ]]; then
+  # Recent Apple linkers reject this legacy Vorbis configure flag.
+  sed -i.bak 's/ -force_cpusubtype_ALL//g' vorbis/configure
+fi
 build_autotools vorbis --with-ogg="$prefix" --disable-docs --disable-examples
 fetch opus https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz
 build_autotools opus --disable-doc --disable-extra-programs
@@ -100,15 +106,12 @@ cmake --install chromaprint/build
 case "$system" in
   Android) cxx_libs="-lc++_static -lc++abi" ;;
   Darwin|iOS) cxx_libs="-lc++" ;;
-  Windows) cxx_libs="-lstdc++ -lwinpthread" ;;
-  *) cxx_libs="-lstdc++" ;;
+  Windows) cxx_libs="-l:libstdc++.a -l:libwinpthread.a" ;;
+  *) cxx_libs="-l:libstdc++.a" ;;
 esac
-case "$system" in
-  Windows|Linux)
-    # The C++ standard library must travel with the executable on these targets.
-    cxx_libs="-Wl,-Bstatic $cxx_libs -Wl,-Bdynamic"
-    ;;
-esac
+if [[ "$system" == Windows ]]; then
+  sed -i.bak '/^Cflags:/s/$/ -DCHROMAPRINT_NODLL/' "$prefix/lib/pkgconfig/libchromaprint.pc"
+fi
 printf '\nLibs.private: %s -lm\n' "$cxx_libs" >> "$prefix/lib/pkgconfig/libchromaprint.pc"
 
 # Windows/macOS/iOS use the system TLS implementation. Android needs a TLS
