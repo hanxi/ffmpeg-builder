@@ -99,7 +99,7 @@ jobs:
         if: startsWith(matrix.target, 'linux-')
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf binutils-aarch64-linux-gnu binutils-arm-linux-gnueabihf yasm nasm pkg-config zlib1g-dev libssl-dev libmp3lame-dev libogg-dev libvorbis-dev libopus-dev libchromaprint-dev libx264-dev curl bzip2
+          sudo apt-get install -y --no-install-recommends build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf binutils-aarch64-linux-gnu binutils-arm-linux-gnueabihf libc6-dev-arm64-cross libc6-dev-armhf-cross yasm nasm pkg-config zlib1g-dev libssl-dev libmp3lame-dev libogg-dev libvorbis-dev libopus-dev libchromaprint-dev libx264-dev curl bzip2
       - name: Set up Android NDK
         if: startsWith(matrix.target, 'android-')
         uses: android-actions/setup-android@v4
