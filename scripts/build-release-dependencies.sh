@@ -99,6 +99,11 @@ fetch x264 "https://github.com/mirror/x264/archive/$x264_commit.tar.gz"
 (
   cd x264
   ./configure "${x264[@]}"
+  if [[ "$target" == android-armeabi-v7a && "$ANDROID_API" -lt 24 ]]; then
+    # x264 probes without its large file definitions. Its compiled ARMv7
+    # sources see the 64-bit stdio aliases, which require API 24.
+    sed -i.bak -e '/^#define fseek fseeko/d' -e '/^#define ftell ftello/d' config.h
+  fi
   make -j"$jobs"
   make install
 )
