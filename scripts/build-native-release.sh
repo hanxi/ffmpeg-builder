@@ -73,7 +73,7 @@ fi
 
 ./configure "${common[@]}" ${FFMPEG_EXTRA_CONFIGURE_ARGS:-}
 if [[ "$target" == windows-x86_64 ]]; then
-  make AR=llvm-ar -j1
+  make -j2
 else
   make -j"${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
 fi
