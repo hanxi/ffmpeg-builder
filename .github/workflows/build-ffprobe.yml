@@ -3,11 +3,16 @@ name: Build and Push FFmpeg
 on:
   push:
     branches: [ main ]
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
+    paths:
+      - Dockerfile
+      - tests/**
+      - .github/workflows/build-ffprobe.yml
   pull_request:
     branches: [ main ]
+    paths:
+      - Dockerfile
+      - tests/**
+      - .github/workflows/build-ffprobe.yml
 
 jobs:
   build-and-push:
