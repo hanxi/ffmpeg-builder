@@ -140,7 +140,11 @@ jobs:
           mkdir -p "$source_dir"
           curl -fL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 \
             "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2" -o "$archive"
-          tar -xjf "$archive" -C "$source_dir"
+          if [[ -n "${MSYSTEM:-}" ]]; then
+            MSYS_NO_PATHCONV=1 tar -xjf "$archive" -C "$source_dir"
+          else
+            tar -xjf "$archive" -C "$source_dir"
+          fi
           echo "FFMPEG_SOURCE_DIR=$source_dir/ffmpeg-${FFMPEG_VERSION}" >> "$GITHUB_ENV"
       - name: Build and package target
         env:
