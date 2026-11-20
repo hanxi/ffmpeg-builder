@@ -25,7 +25,7 @@ common=(
   --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc,extract_extradata
   --enable-filter=aresample,anull,loudnorm,scale,format,null,atempo
   --enable-version3
-  --enable-zlib --pkg-config-flags=--static
+  --pkg-config-flags=--static
 )
 
 case "$target" in
@@ -43,7 +43,7 @@ case "$target" in
 esac
 
 if [[ "$target" == linux-x86_64 ]]; then
-  common+=(--enable-openssl --enable-gpl --enable-muxer=chromaprint --enable-chromaprint --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264 --enable-encoder=libmp3lame,libvorbis,libopus,libx264)
+  common+=(--enable-zlib --enable-openssl --enable-gpl --enable-muxer=chromaprint --enable-chromaprint --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264 --enable-encoder=libmp3lame,libvorbis,libopus,libx264)
 fi
 if [[ "$target" != linux-x86_64 && -n "${CROSS_PREFIX:-}" ]]; then
   common+=(--cross-prefix="$CROSS_PREFIX")
@@ -64,6 +64,7 @@ if [[ "$target" == windows-x86_64 || "$target" == android-x86_64 ]]; then
   common+=(--disable-x86asm)
 fi
 if [[ "$target" == android-* && -n "${ANDROID_API:-}" ]]; then
+  common+=(--strip="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip")
   common+=(--sysroot="${ANDROID_NDK_SYSROOT:?ANDROID_NDK_SYSROOT is required}" --extra-cflags="-fPIC" --extra-ldflags="-fuse-ld=lld")
 fi
 if [[ "$target" == ios-arm64 ]]; then
@@ -71,7 +72,11 @@ if [[ "$target" == ios-arm64 ]]; then
 fi
 
 ./configure "${common[@]}" ${FFMPEG_EXTRA_CONFIGURE_ARGS:-}
-make -j"${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
+if [[ "$target" == windows-x86_64 ]]; then
+  make -j2
+else
+  make -j"${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"
+fi
 make install
 
 if [[ "$target" == ios-arm64 ]]; then
