@@ -99,7 +99,7 @@ jobs:
         if: startsWith(matrix.target, 'linux-')
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends build-essential yasm nasm pkg-config zlib1g-dev libssl-dev libmp3lame-dev libogg-dev libvorbis-dev libopus-dev libchromaprint-dev libx264-dev curl bzip2
+          sudo apt-get install -y --no-install-recommends build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf binutils-aarch64-linux-gnu binutils-arm-linux-gnueabihf yasm nasm pkg-config zlib1g-dev libssl-dev libmp3lame-dev libogg-dev libvorbis-dev libopus-dev libchromaprint-dev libx264-dev curl bzip2
       - name: Set up Android NDK
         if: startsWith(matrix.target, 'android-')
         uses: android-actions/setup-android@v4
@@ -117,6 +117,8 @@ jobs:
             mingw-w64-x86_64-pkgconf
             mingw-w64-x86_64-zlib
             mingw-w64-x86_64-openssl
+            curl
+            bzip2
       - name: Download FFmpeg source
         run: |
           set -euo pipefail
@@ -145,6 +147,9 @@ jobs:
               android-x86_64) compiler=x86_64-linux-android23-clang; export CROSS_PREFIX="$toolchain/x86_64-linux-android23-" ;;
             esac
             export CC="$toolchain/$compiler"
+            export NM="$toolchain/llvm-nm"
+            export AR="$toolchain/llvm-ar"
+            export RANLIB="$toolchain/llvm-ranlib"
             export ANDROID_NDK_SYSROOT="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
           fi
           build="$RUNNER_TEMP/ffmpeg-build"

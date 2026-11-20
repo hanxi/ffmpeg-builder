@@ -49,6 +49,15 @@ fi
 if [[ "$target" != linux-x86_64 && -n "${CC:-}" ]]; then
   common+=(--cc="$CC")
 fi
+if [[ -n "${NM:-}" ]]; then
+  common+=(--nm="$NM")
+fi
+if [[ -n "${AR:-}" ]]; then
+  common+=(--ar="$AR")
+fi
+if [[ -n "${RANLIB:-}" ]]; then
+  common+=(--ranlib="$RANLIB")
+fi
 if [[ "$target" == android-* && -n "${ANDROID_API:-}" ]]; then
   common+=(--sysroot="${ANDROID_NDK_SYSROOT:?ANDROID_NDK_SYSROOT is required}" --extra-cflags="-fPIC" --extra-ldflags="-fuse-ld=lld")
 fi
