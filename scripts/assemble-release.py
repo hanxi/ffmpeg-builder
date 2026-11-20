@@ -31,7 +31,7 @@ def main() -> int:
         name = archive.name
         stem = name.removeprefix("ffmpeg-")
         suffix = ".tar.gz" if name.endswith(".tar.gz") else ".zip"
-        target = stem[: -len(suffix)]
+        target = stem[: -len(suffix)].removeprefix(f"{args.version}-")
         if target not in {
             "linux-x86_64", "linux-arm64", "linux-armv7", "windows-x86_64",
             "macos-arm64", "macos-x86_64", "android-arm64-v8a", "android-armeabi-v7a",
