@@ -100,17 +100,21 @@ Songloft's binary updater does not replace ffmpeg/ffprobe inside a container. Af
 
 ## Multi-platform release assets
 
-`release-assets.yml` builds and publishes fixed-ABI assets for the `dev` channel or a stable tag. Each release contains `manifest.json`, compressed assets, `checksums.txt`, and build metadata. The manifest records the FFmpeg version, source commit, configure arguments, GPL license, and the size and SHA-256 digest of every asset.
+`release-assets.yml` packages ten targets. Pushes to `main` that change `Dockerfile`, `scripts/**`, `tests/**`, or this workflow update `dev`. Pushing a `vX.Y.Z` tag publishes the corresponding stable assets. To run **Actions → Release FFmpeg assets** manually, select `channel=dev` and `release_tag=dev` for a development build, or `channel=stable` and a concrete version tag for stable. Each release contains `manifest.json`, `checksums.txt`, and platform archives. Each archive's `asset.json` records its target, source commit, and GPL license.
+
+The separate `build-ffprobe.yml` workflow builds Docker images. It handles pushes and pull requests targeting `main` that change `Dockerfile`, `tests/**`, or that workflow. Documentation-only changes trigger neither workflow. Existing Releases receive replacements under the same asset names. Verify their digests and manifest when checking a build.
+
+[dev Release](https://github.com/hanxi/ffmpeg-builder/releases/tag/dev) · [Package inventory](https://songloft.hanxi.cc/en/release-packages)
 
 Build one asset locally with the platform toolchain:
 
 ```bash
 FFMPEG_SOURCE_DIR=/path/to/ffmpeg-8.0.1 \
   scripts/build-native-release.sh linux-x86_64 /tmp/ffmpeg-build
-FFMPEG_SOURCE_COMMIT=894da5ca7d742e4429ffb2af534fcda0103ef593 \
+source_commit=894da5ca7d742e4429ffb2af534fcda0103ef593
 python3 scripts/build-release-assets.py \
   --target linux-x86_64 --version 8.0.1 --release-tag dev --channel dev \
-  --source-commit "$FFMPEG_SOURCE_COMMIT" \
+  --source-commit "$source_commit" \
   --ffmpeg /tmp/ffmpeg-build/bin/ffmpeg \
   --ffprobe /tmp/ffmpeg-build/bin/ffprobe --output-dir release-assets
 ```

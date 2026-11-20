@@ -26,7 +26,7 @@
 - Scope: multi-platform FFmpeg release assets and Bundle resolution, including the new `release-assets.yml`, `scripts/build-release-assets.py`, and the parent resolver.
 - Rule: resolve a concrete Release tag for the selected channel first, then validate the manifest tag, platform, ABI, size, and SHA-256. Save the resolution and reuse it across the whole matrix. Jobs must not read a rolling `latest` URL directly.
 - Correct example: `ffmpeg-resolution.json` records `release_tag`, `source_commit`, `manifest_sha256`, and each asset digest. Downloads are checked again and missing or replaced assets stop the build.
-- Seen 1× (2026-11-20). Status: local implementation; remote multi-platform builds and device installation remain for release-pipeline acceptance.
+- Seen 1× (2026-11-20). [Dev CI](https://github.com/hanxi/ffmpeg-builder/actions/runs/44751699585) published all ten targets, and backend Bundle CI verified and reused the same manifest. Device installation and playback are checked separately.
 
 ### BUILD-004: Link macOS release tools only to system dynamic libraries
 

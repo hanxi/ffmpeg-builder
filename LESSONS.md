@@ -26,7 +26,7 @@
 - 范围：多平台 FFmpeg 发布资产与 Bundle 构建解析；本仓库新增 `release-assets.yml`、`scripts/build-release-assets.py` 和父仓库解析器。
 - 规则：先按通道读取具体 Release tag，再校验 manifest 的 tag、平台、ABI、大小和 SHA-256；解析结果写入构建记录并供整个矩阵复用。不能在各 job 中直接读取滚动 `latest` URL。
 - 正确示例：`ffmpeg-resolution.json` 同时记录 `release_tag`、`source_commit`、`manifest_sha256` 和每项资产摘要；下载后再按摘要校验，缺项或替换立即失败。
-- Seen 1× (2026-11-20)。状态：本地实现，远端多平台构建与设备安装待发布流水线验收。
+- Seen 1× (2026-11-20)。[dev CI](https://github.com/hanxi/ffmpeg-builder/actions/runs/44751699585)已发布十个目标的资产，后端 Bundle CI 校验并复用了同一清单。设备安装与播放另行验收。
 
 ### BUILD-004：macOS Release 工具只链接系统动态库
 

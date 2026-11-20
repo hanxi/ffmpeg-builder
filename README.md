@@ -100,17 +100,21 @@ Songloft 的二进制在线升级不会替换容器内的 ffmpeg/ffprobe。修�
 
 ## 多平台 Release 资产
 
-`release-assets.yml` 在 `dev` 或稳定 tag 上构建并发布固定 ABI 的资产。发布内容包括 `manifest.json`、压缩资产、`checksums.txt` 和构建元数据。manifest 记录 FFmpeg 版本、源码提交、configure 参数、GPL 许可证和每个资产的大小与 SHA-256。
+`release-assets.yml` 构建十个目标的压缩资产。修改 `Dockerfile`、`scripts/**`、`tests/**` 或该 workflow 后推送到 `main`，会更新 `dev`。推送 `vX.Y.Z` tag 发布对应的稳定资产。手动运行 **Actions → Release FFmpeg assets** 时，开发通道选择 `channel=dev`、`release_tag=dev`，稳定通道选择 `channel=stable` 和具体版本 tag。发布包含 `manifest.json`、`checksums.txt` 和各平台归档。归档内的 `asset.json` 记录目标、源码提交和 GPL 许可证。
+
+Docker 镜像由独立的 `build-ffprobe.yml` 构建。它监听针对 `main` 且涉及 `Dockerfile`、`tests/**` 或该 workflow 的 push 和 pull request。纯文档更新不启动这两个 workflow。已有 Release 使用同名资产覆盖上传，核对构建时应查看附件摘要和 manifest。
+
+[dev Release](https://github.com/hanxi/ffmpeg-builder/releases/tag/dev) · [完整包名](https://songloft.hanxi.cc/release-packages)
 
 本地可用平台工具链生成单项资产：
 
 ```bash
 FFMPEG_SOURCE_DIR=/path/to/ffmpeg-8.0.1 \
   scripts/build-native-release.sh linux-x86_64 /tmp/ffmpeg-build
-FFMPEG_SOURCE_COMMIT=894da5ca7d742e4429ffb2af534fcda0103ef593 \
+source_commit=894da5ca7d742e4429ffb2af534fcda0103ef593
 python3 scripts/build-release-assets.py \
   --target linux-x86_64 --version 8.0.1 --release-tag dev --channel dev \
-  --source-commit "$FFMPEG_SOURCE_COMMIT" \
+  --source-commit "$source_commit" \
   --ffmpeg /tmp/ffmpeg-build/bin/ffmpeg \
   --ffprobe /tmp/ffmpeg-build/bin/ffprobe --output-dir release-assets
 ```
