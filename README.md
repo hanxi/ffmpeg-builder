@@ -14,6 +14,7 @@
 - 普通 HLS 输入与 AES-128 加密分片读取（`hls` demuxer + `crypto` 协议）
 - 音频滤镜：aresample（重采样）、loudnorm（EBU R128 音量均衡）、atempo（变速不变调，0.5–2.0 倍速播放）
 - 内置 chromaprint muxer，支持 AcoustID 音频指纹识别（无需独立 fpcalc）
+- 发布 Linux、Windows、macOS、Android 和 iOS 资产，并为每个 ABI 生成固定名称与 SHA-256
 
 ## 支持的格式
 
@@ -96,6 +97,25 @@ python3 tests/hls_input.py --image ffmpeg-hls-test:local
 系统 FFmpeg 只生成 6 秒合成 H.264 + MP2 夹具，并独立检查输出编码；实际探测和转码使用镜像内的 ffprobe/ffmpeg。测试通过本机 HTTP 服务覆盖直接 TS、主列表→子列表→TS、AES-128 HLS→密钥读取，检查 AAC-LC 双声道 48 kHz、HLS 输出和 H.264 逐包 SHA-256 不变。CI 在推送多架构镜像前先构建、运行 amd64 产物；ARM 运行验证另行执行。
 
 Songloft 的二进制在线升级不会替换容器内的 ffmpeg/ffprobe。修复工具镜像后，还需等待 Songloft 构建同步基础镜像，再拉取并重建容器；仅升级 Songloft 可执行文件不能补齐旧工具的能力。
+
+## 多平台 Release 资产
+
+`release-assets.yml` 在 `dev` 或稳定 tag 上构建并发布固定 ABI 的资产。发布内容包括 `manifest.json`、压缩资产、`checksums.txt` 和构建元数据。manifest 记录 FFmpeg 版本、源码提交、configure 参数、GPL 许可证和每个资产的大小与 SHA-256。
+
+本地可用平台工具链生成单项资产：
+
+```bash
+FFMPEG_SOURCE_DIR=/path/to/ffmpeg-8.0.1 \
+  scripts/build-native-release.sh linux-x86_64 /tmp/ffmpeg-build
+FFMPEG_SOURCE_COMMIT=894da5ca7d742e4429ffb2af534fcda0103ef593 \
+python3 scripts/build-release-assets.py \
+  --target linux-x86_64 --version 8.0.1 --release-tag dev --channel dev \
+  --source-commit "$FFMPEG_SOURCE_COMMIT" \
+  --ffmpeg /tmp/ffmpeg-build/bin/ffmpeg \
+  --ffprobe /tmp/ffmpeg-build/bin/ffprobe --output-dir release-assets
+```
+
+Bundle 构建先解析 `dev` 或稳定 Release，再按 manifest 校验 tag、平台、ABI、大小和 SHA-256。解析结果会保存具体 Release tag、构建器提交和资产摘要。构建矩阵始终复用这份结果，不直接下载没有版本约束的 `latest` 文件。
 
 ## 许可证
 

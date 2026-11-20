@@ -14,6 +14,7 @@ A lightweight Docker builder for minimal images containing static ffmpeg and ffp
 - Plain HLS input and AES-128 encrypted segments (`hls` demuxer and `crypto` protocol)
 - Audio filters: aresample, loudnorm (EBU R128), and atempo (pitch-preserving speed changes, 0.5–2.0 per filter)
 - Chromaprint muxer for AcoustID fingerprints without a separate fpcalc
+- Release assets for Linux, Windows, macOS, Android, and iOS with ABI-specific names and SHA-256 digests
 
 ## Supported formats
 
@@ -96,6 +97,25 @@ python3 tests/hls_input.py --image ffmpeg-hls-test:local
 System FFmpeg generates six seconds of synthetic H.264 + MP2 media and independently inspects output codecs. The image's ffprobe/ffmpeg perform the actual probing and transcoding. A local HTTP server serves direct TS, master→media→TS playlists, and AES-128 HLS with key fetching. Tests check AAC-LC stereo at 48 kHz, HLS output, and identical SHA-256 hashes for every H.264 packet. CI builds and runs the amd64 image before pushing multiple architectures; ARM execution requires separate validation.
 
 Songloft's binary updater does not replace ffmpeg/ffprobe inside a container. After fixing this tool image, wait for the Songloft build to mirror it, then pull the new image and recreate the container. Updating only the Songloft executable cannot add capabilities to old tools.
+
+## Multi-platform release assets
+
+`release-assets.yml` builds and publishes fixed-ABI assets for the `dev` channel or a stable tag. Each release contains `manifest.json`, compressed assets, `checksums.txt`, and build metadata. The manifest records the FFmpeg version, source commit, configure arguments, GPL license, and the size and SHA-256 digest of every asset.
+
+Build one asset locally with the platform toolchain:
+
+```bash
+FFMPEG_SOURCE_DIR=/path/to/ffmpeg-8.0.1 \
+  scripts/build-native-release.sh linux-x86_64 /tmp/ffmpeg-build
+FFMPEG_SOURCE_COMMIT=894da5ca7d742e4429ffb2af534fcda0103ef593 \
+python3 scripts/build-release-assets.py \
+  --target linux-x86_64 --version 8.0.1 --release-tag dev --channel dev \
+  --source-commit "$FFMPEG_SOURCE_COMMIT" \
+  --ffmpeg /tmp/ffmpeg-build/bin/ffmpeg \
+  --ffprobe /tmp/ffmpeg-build/bin/ffprobe --output-dir release-assets
+```
+
+Bundle builds resolve the `dev` or stable Release first, then validate its tag, platform, ABI, size, and SHA-256 digest from the manifest. The resolved Release tag, builder commit, and asset digests are saved with the build. Every matrix job reuses that result instead of downloading an unversioned `latest` file.
 
 ## License
 

@@ -1,0 +1,191 @@
+name: Release FFmpeg assets
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        required: true
+        type: choice
+        options: [dev, stable]
+        default: dev
+      release_tag:
+        description: Concrete release tag, for example v8.0.1 or dev
+        required: true
+        type: string
+      ffmpeg_version:
+        description: FFmpeg source version
+        required: true
+        type: string
+        default: 8.0.1
+
+permissions:
+  contents: write
+
+env:
+  FFMPEG_VERSION: ${{ inputs.ffmpeg_version || '8.0.1' }}
+  # FFmpeg source commit used by the pinned 8.0.1 build. Keep this value in
+  # sync with the desktop compatibility contract.
+  FFMPEG_SOURCE_COMMIT: 894da5ca7d742e4429ffb2af534fcda0103ef593
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      channel: ${{ steps.meta.outputs.channel }}
+      release_tag: ${{ steps.meta.outputs.release_tag }}
+      source_commit: ${{ steps.meta.outputs.source_commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == workflow_dispatch ]]; then
+            channel='${{ inputs.channel }}'
+            release_tag='${{ inputs.release_tag }}'
+          elif [[ "${GITHUB_REF_TYPE}" == tag ]]; then
+            channel=stable
+            release_tag="${GITHUB_REF_NAME}"
+          else
+            channel=dev
+            release_tag=dev
+          fi
+          [[ "$channel" == dev && "$release_tag" == dev || "$channel" == stable && "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "invalid channel/tag pair" >&2
+            exit 1
+          }
+          source_commit="$FFMPEG_SOURCE_COMMIT"
+          printf 'channel=%s\nrelease_tag=%s\nsource_commit=%s\n' "$channel" "$release_tag" "$source_commit" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x86_64
+            runner: ubuntu-24.04
+          - target: linux-arm64
+            runner: ubuntu-24.04
+          - target: linux-armv7
+            runner: ubuntu-24.04
+          - target: windows-x86_64
+            runner: windows-2022
+          - target: macos-arm64
+            runner: macos-14
+          - target: macos-x86_64
+            runner: macos-13
+          - target: android-arm64-v8a
+            runner: ubuntu-24.04
+          - target: android-armeabi-v7a
+            runner: ubuntu-24.04
+          - target: android-x86_64
+            runner: ubuntu-24.04
+          - target: ios-arm64
+            runner: macos-14
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        if: startsWith(matrix.target, 'linux-')
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends build-essential yasm nasm pkg-config zlib1g-dev libssl-dev libmp3lame-dev libogg-dev libvorbis-dev libopus-dev libchromaprint-dev libx264-dev curl bzip2
+      - name: Set up Android NDK
+        if: startsWith(matrix.target, 'android-')
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0 ndk;27.2.12479018'
+      - name: Set up Windows toolchain
+        if: startsWith(matrix.target, 'windows-')
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-yasm
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-openssl
+      - name: Download FFmpeg source
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ffmpeg-source"
+          curl -fL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 \
+            "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2" -o "$RUNNER_TEMP/ffmpeg.tar.bz2"
+          tar -xjf "$RUNNER_TEMP/ffmpeg.tar.bz2" -C "$RUNNER_TEMP/ffmpeg-source"
+          echo "FFMPEG_SOURCE_DIR=$RUNNER_TEMP/ffmpeg-source/ffmpeg-${FFMPEG_VERSION}" >> "$GITHUB_ENV"
+      - name: Build and package target
+        env:
+          FFMPEG_SOURCE_COMMIT: ${{ needs.prepare.outputs.source_commit }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          RELEASE_CHANNEL: ${{ needs.prepare.outputs.channel }}
+          ANDROID_API: '23'
+        run: |
+          set -euo pipefail
+          if [[ '${{ matrix.target }}' == linux-arm64 ]]; then
+            export CROSS_PREFIX=aarch64-linux-gnu-
+          elif [[ '${{ matrix.target }}' == linux-armv7 ]]; then
+            export CROSS_PREFIX=arm-linux-gnueabihf-
+          elif [[ '${{ matrix.target }}' == android-* ]]; then
+            toolchain="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin"
+            case '${{ matrix.target }}' in
+              android-arm64-v8a) compiler=aarch64-linux-android23-clang; export CROSS_PREFIX="$toolchain/aarch64-linux-android23-" ;;
+              android-armeabi-v7a) compiler=armv7a-linux-androideabi23-clang; export CROSS_PREFIX="$toolchain/armv7a-linux-androideabi23-" ;;
+              android-x86_64) compiler=x86_64-linux-android23-clang; export CROSS_PREFIX="$toolchain/x86_64-linux-android23-" ;;
+            esac
+            export CC="$toolchain/$compiler"
+            export ANDROID_NDK_SYSROOT="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+          fi
+          build="$RUNNER_TEMP/ffmpeg-build"
+          ./scripts/build-native-release.sh '${{ matrix.target }}' "$build"
+          output="$GITHUB_WORKSPACE/release-assets"
+          if [[ '${{ matrix.target }}' == ios-arm64 ]]; then
+            python3 scripts/build-release-assets.py --target '${{ matrix.target }}' --source-commit "$FFMPEG_SOURCE_COMMIT" --release-tag "$RELEASE_TAG" --channel "$RELEASE_CHANNEL" --version "$FFMPEG_VERSION" --framework "$build/framework" --output-dir "$output"
+          else
+            python3 scripts/build-release-assets.py --target '${{ matrix.target }}' --source-commit "$FFMPEG_SOURCE_COMMIT" --release-tag "$RELEASE_TAG" --channel "$RELEASE_CHANNEL" --version "$FFMPEG_VERSION" --ffmpeg "$build/bin/ffmpeg${{ startsWith(matrix.target, 'windows-') && '.exe' || '' }}" --ffprobe "$build/bin/ffprobe${{ startsWith(matrix.target, 'windows-') && '.exe' || '' }}" --output-dir "$output"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-${{ matrix.target }}
+          path: release-assets/ffmpeg-*
+          if-no-files-found: error
+
+  publish:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ffmpeg-*
+          path: release-assets
+          merge-multiple: true
+      - name: Assemble manifest and checksums
+        env:
+          RELEASE_CHANNEL: ${{ needs.prepare.outputs.channel }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.release_tag }}
+          SOURCE_COMMIT: ${{ needs.prepare.outputs.source_commit }}
+        run: |
+          python3 scripts/assemble-release.py --directory release-assets --channel "$RELEASE_CHANNEL" --release-tag "$RELEASE_TAG" --version "$FFMPEG_VERSION" --source-commit "$SOURCE_COMMIT"
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          [[ '${{ needs.prepare.outputs.channel }}' == dev ]] && flags+=(--prerelease)
+          if gh release view '${{ needs.prepare.outputs.release_tag }}' >/dev/null 2>&1; then
+            gh release upload '${{ needs.prepare.outputs.release_tag }}' --clobber release-assets/*
+          else
+            gh release create '${{ needs.prepare.outputs.release_tag }}' --title "FFmpeg $FFMPEG_VERSION (${{ needs.prepare.outputs.channel }})" --notes "Immutable FFmpeg/FFprobe assets for Songloft Bundle builds." "${flags[@]}" release-assets/*
+          fi

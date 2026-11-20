@@ -20,3 +20,10 @@
 - 规则与修复：全部源码下载显式设置 `--retry 5 --retry-all-errors`，使 TLS/连接重置也能重试；同时限制连接、单次下载和重试时间。保留 `--fail`、TLS 校验及成功后才解包的顺序，不用忽略错误来继续构建。
 - Done right：本地 TLS 服务首次连接立即中断，旧命令返回 35、仅连接一次；Dockerfile 中提取的新参数重试后成功，连接两次且文件内容完整。日志 `/tmp/songloft-541-curl-retry-check.log`；实际多架构发布结果另按修复提交的 CI 核对。
 - Seen 1× (2026-10-30)。状态：构建韧性修复；同一事故不增加 BUILD-001 的次数。
+
+## BUILD-003：Bundle 资产必须先固定 Release 身份再下载
+
+- 范围：多平台 FFmpeg 发布资产与 Bundle 构建解析；本仓库新增 `release-assets.yml`、`scripts/build-release-assets.py` 和父仓库解析器。
+- 规则：先按通道读取具体 Release tag，再校验 manifest 的 tag、平台、ABI、大小和 SHA-256；解析结果写入构建记录并供整个矩阵复用。不能在各 job 中直接读取滚动 `latest` URL。
+- 正确示例：`ffmpeg-resolution.json` 同时记录 `release_tag`、`source_commit`、`manifest_sha256` 和每项资产摘要；下载后再按摘要校验，缺项或替换立即失败。
+- Seen 1× (2026-11-20)。状态：本地实现，远端多平台构建与设备安装待发布流水线验收。

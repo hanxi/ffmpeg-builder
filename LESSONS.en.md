@@ -20,3 +20,10 @@
 - Rule and fix: all source downloads explicitly use `--retry 5 --retry-all-errors` to cover TLS/connection resets, with connection, transfer, and retry time limits. Preserve `--fail`, TLS verification, and extraction only after successful download; do not ignore errors to continue building.
 - Done right: a local TLS server interrupted the first connection. The old command exited 35 after one connection; new options extracted from the Dockerfile retried successfully, with two connections and complete file content. Log: `/tmp/songloft-541-curl-retry-check.log`; verify actual multi-architecture publication against CI for the fix commit.
 - Seen 1× (2026-10-30). Status: build resilience fix; the same incident does not increment BUILD-001.
+
+## BUILD-003: Resolve the Release identity before downloading Bundle assets
+
+- Scope: multi-platform FFmpeg release assets and Bundle resolution, including the new `release-assets.yml`, `scripts/build-release-assets.py`, and the parent resolver.
+- Rule: resolve a concrete Release tag for the selected channel first, then validate the manifest tag, platform, ABI, size, and SHA-256. Save the resolution and reuse it across the whole matrix. Jobs must not read a rolling `latest` URL directly.
+- Correct example: `ffmpeg-resolution.json` records `release_tag`, `source_commit`, `manifest_sha256`, and each asset digest. Downloads are checked again and missing or replaced assets stop the build.
+- Seen 1× (2026-11-20). Status: local implementation; remote multi-platform builds and device installation remain for release-pipeline acceptance.
