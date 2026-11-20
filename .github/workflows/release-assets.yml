@@ -122,6 +122,7 @@ jobs:
           install: >-
             base-devel
             mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-llvm
             mingw-w64-x86_64-yasm
             mingw-w64-x86_64-pkgconf
             mingw-w64-x86_64-zlib

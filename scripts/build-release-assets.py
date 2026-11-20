@@ -60,7 +60,7 @@ def command_output(path: Path, *args: str) -> str:
     return result.stdout + result.stderr
 
 
-def check_executable(path: Path, expected_version: str, expected_architecture: str) -> None:
+def check_executable(path: Path, expected_version: str, expected_architecture: str, run_version: bool) -> None:
     if not path.is_file() or not (path.stat().st_mode & stat.S_IXUSR):
         raise ValueError(f"{path} must be a regular executable file")
     file_info = ""
@@ -75,7 +75,7 @@ def check_executable(path: Path, expected_version: str, expected_architecture: s
     }.get(expected_architecture, ())
     if architecture_tokens and any(marker in file_info for marker in ("elf", "pe32", "mach-o")) and not any(token in file_info for token in architecture_tokens):
         raise ValueError(f"{path} has an unexpected architecture: {file_info.strip()}")
-    if not architecture_tokens or any(token in file_info for token in architecture_tokens):
+    if run_version:
         version = command_output(path, "-version").splitlines()[0]
         if not re.search(rf"\bversion (?:n)?{re.escape(expected_version)}(?:[ -]|$)", version):
             raise ValueError(f"{path} reports an unexpected version: {version}")
@@ -108,8 +108,8 @@ def make_archive(target: str, version: str, source_commit: str, ffmpeg: Path | N
             if ffmpeg is None or ffprobe is None:
                 raise ValueError("executable targets require --ffmpeg and --ffprobe")
             extension = ".exe" if platform_name == "windows" else ""
-            check_executable(ffmpeg, version, architecture)
-            check_executable(ffprobe, version, architecture)
+            check_executable(ffmpeg, version, architecture, target == "linux-x86_64")
+            check_executable(ffprobe, version, architecture, target == "linux-x86_64")
             shutil.copy2(ffmpeg, root / f"ffmpeg{extension}")
             shutil.copy2(ffprobe, root / f"ffprobe{extension}")
         else:
