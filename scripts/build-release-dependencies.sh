@@ -56,6 +56,7 @@ case "$system" in
     ;;
   Darwin)
     export CC=clang CXX=clang++
+    cmake_args+=(-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0)
     ;;
   *)
     export CC="${CROSS_PREFIX}gcc" CXX="${CROSS_PREFIX}g++"
@@ -105,6 +106,7 @@ fetch x264 "https://github.com/mirror/x264/archive/$x264_commit.tar.gz"
 fetch chromaprint https://github.com/acoustid/chromaprint/releases/download/v1.6.0/chromaprint-1.6.0.tar.gz
 cmake -S chromaprint -B chromaprint/build "${cmake_args[@]}" -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="$prefix" -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DKISSFFT_SOURCE_DIR="$root/chromaprint/src/3rdparty/kissfft" \
   -DBUILD_TOOLS=OFF -DBUILD_TESTS=OFF -DBUILD_SHARED_LIBS=OFF -DFFT_LIB=kissfft
 cmake --build chromaprint/build --parallel "$jobs"
 cmake --install chromaprint/build
