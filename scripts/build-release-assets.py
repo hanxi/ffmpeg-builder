@@ -113,19 +113,13 @@ def make_archive(target: str, version: str, source_commit: str, ffmpeg: Path | N
             shutil.copy2(ffmpeg, root / f"ffmpeg{extension}")
             shutil.copy2(ffprobe, root / f"ffprobe{extension}")
         else:
-            if framework is None:
-                raise ValueError("ios-arm64 requires --framework")
-            if framework.is_dir():
-                libraries = sorted(framework.glob("*.a"))
-                if not libraries:
-                    raise ValueError(f"{framework} must contain at least one static library")
-                destination = root / framework.name
-                shutil.copytree(framework, destination)
-                for library in libraries:
-                    check_static_library(library, architecture)
-            else:
-                check_static_library(framework, architecture)
-                shutil.copy2(framework, root / framework.name)
+            if framework is None or not framework.is_dir():
+                raise ValueError("ios-arm64 requires the static library package directory")
+            check_static_library(framework / "libsongloft_ffmpeg.a", architecture)
+            for required in ("include/libavformat/avformat.h", "include/libavfilter/avfilter.h", "link-flags.txt"):
+                if not (framework / required).is_file():
+                    raise ValueError(f"iOS FFmpeg package is missing {required}")
+            shutil.copytree(framework, root / "framework")
 
         metadata = {
             "target": target,

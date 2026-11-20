@@ -115,7 +115,9 @@ python3 scripts/build-release-assets.py \
   --ffprobe /tmp/ffmpeg-build/bin/ffprobe --output-dir release-assets
 ```
 
-Bundle builds resolve the `dev` or stable Release first, then validate its tag, platform, ABI, size, and SHA-256 digest from the manifest. The resolved Release tag, builder commit, and asset digests are saved with the build. Every matrix job reuses that result instead of downloading an unversioned `latest` file.
+Bundle builds resolve the `dev` or stable Release first, then validate its tag, platform, ABI, size, and SHA-256 digest from the manifest. The resolved Release tag, FFmpeg source commit, and asset digests are saved with the build. Every matrix job reuses that result instead of downloading an unversioned `latest` file.
+
+The iOS arm64 asset contains `framework/libsongloft_ffmpeg.a`, the public headers, and `link-flags.txt` for static linking into gomobile. Android ships position independent executables for the APK's `lib/<ABI>/` directory. The build checks the ELF interpreter, system dependencies, and 16 KiB alignment. The Bundle targets include MP3, Vorbis, H.264, and Chromaprint support.
 
 ## License
 

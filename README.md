@@ -115,7 +115,9 @@ python3 scripts/build-release-assets.py \
   --ffprobe /tmp/ffmpeg-build/bin/ffprobe --output-dir release-assets
 ```
 
-Bundle 构建先解析 `dev` 或稳定 Release，再按 manifest 校验 tag、平台、ABI、大小和 SHA-256。解析结果会保存具体 Release tag、构建器提交和资产摘要。构建矩阵始终复用这份结果，不直接下载没有版本约束的 `latest` 文件。
+Bundle 构建先解析 `dev` 或稳定 Release，再按 manifest 校验 tag、平台、ABI、大小和 SHA-256。解析结果会保存具体 Release tag、FFmpeg 源码提交和资产摘要。构建矩阵始终复用这份结果，不直接下载没有版本约束的 `latest` 文件。
+
+iOS 的 arm64 资产包含 `framework/libsongloft_ffmpeg.a`、公开头文件和 `link-flags.txt`，供 gomobile 静态链接。Android 资产提供可放入 APK `lib/<ABI>/` 的位置无关可执行文件，构建校验 ELF 解释器、系统依赖和 16 KiB 对齐。各 Bundle 目标包含 MP3、Vorbis、H.264 和 Chromaprint 支持。
 
 ## 许可证
 
