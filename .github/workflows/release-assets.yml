@@ -134,7 +134,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/ffmpeg-source"
           curl -fL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 \
             "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2" -o "$RUNNER_TEMP/ffmpeg.tar.bz2"
-          MSYS_NO_PATHCONV=1 tar -xjf "$RUNNER_TEMP/ffmpeg.tar.bz2" -C "$RUNNER_TEMP/ffmpeg-source"
+          MSYS_NO_PATHCONV=1 tar --force-local -xjf "$RUNNER_TEMP/ffmpeg.tar.bz2" -C "$RUNNER_TEMP/ffmpeg-source"
           echo "FFMPEG_SOURCE_DIR=$RUNNER_TEMP/ffmpeg-source/ffmpeg-${FFMPEG_VERSION}" >> "$GITHUB_ENV"
       - name: Build and package target
         env:

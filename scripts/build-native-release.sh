@@ -43,7 +43,7 @@ case "$target" in
 esac
 
 if [[ "$target" == linux-x86_64 ]]; then
-  common+=(--enable-muxer=chromaprint --enable-chromaprint --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264 --enable-encoder=libmp3lame,libvorbis,libopus,libx264)
+  common+=(--enable-gpl --enable-muxer=chromaprint --enable-chromaprint --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264 --enable-encoder=libmp3lame,libvorbis,libopus,libx264)
 fi
 if [[ "$target" != linux-x86_64 && -n "${CROSS_PREFIX:-}" ]]; then
   common+=(--cross-prefix="$CROSS_PREFIX")
