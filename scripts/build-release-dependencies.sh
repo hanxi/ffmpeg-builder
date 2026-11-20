@@ -75,8 +75,13 @@ build_autotools() (
 )
 
 fetch lame https://deb.debian.org/debian/pool/main/l/lame/lame_3.100.orig.tar.gz
-# FFmpeg supplies the decoder. Build LAME only for MP3 encoding.
-build_autotools lame --disable-frontend --disable-decoder
+# LAME still compiles mpglib with the decoder disabled. Its generated
+# configure cannot run the standard C headers probe for an iOS cross build.
+lame_options=(--disable-frontend --disable-decoder)
+if [[ "$system" == iOS ]]; then
+  lame_options+=(ac_cv_header_stdc=yes)
+fi
+build_autotools lame "${lame_options[@]}"
 fetch ogg https://downloads.xiph.org/releases/ogg/libogg-1.3.5.tar.xz
 build_autotools ogg
 fetch vorbis https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz
