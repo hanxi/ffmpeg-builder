@@ -73,7 +73,8 @@ build_autotools() (
 )
 
 fetch lame https://deb.debian.org/debian/pool/main/l/lame/lame_3.100.orig.tar.gz
-build_autotools lame --disable-frontend
+# FFmpeg supplies the decoder. Build LAME only for MP3 encoding.
+build_autotools lame --disable-frontend --disable-decoder
 fetch ogg https://downloads.xiph.org/releases/ogg/libogg-1.3.5.tar.xz
 build_autotools ogg
 fetch vorbis https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz
