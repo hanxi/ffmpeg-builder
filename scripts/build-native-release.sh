@@ -128,7 +128,8 @@ else
       "$readelf" -d "$program" > "$destination/elf-dynamic.txt"
       grep -E 'Type:.*DYN' "$destination/elf-header.txt"
       grep -F 'Requesting program interpreter: /system/bin/linker' "$destination/elf-segments.txt"
-      if grep -E 'Shared library:' "$destination/elf-dynamic.txt" | grep -Ev '\[(libc|libm|libdl|liblog)\.so\]'; then
+      # libz is part of the public NDK alongside the Bionic runtime.
+      if grep -E 'Shared library:' "$destination/elf-dynamic.txt" | grep -Ev '\[(libc|libm|libdl|liblog|libz)\.so\]'; then
         echo "Unexpected Android runtime dependency in $program" >&2
         exit 1
       fi
