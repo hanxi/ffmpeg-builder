@@ -24,7 +24,7 @@ common=(
   --enable-parser=mpegaudio,aac,flac,opus,h264,hevc,mpegvideo,mpeg4video,vp8,vp9,vc1,ac3,dca
   --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc,extract_extradata
   --enable-filter=aresample,anull,loudnorm,scale,format,null,atempo
-  --enable-gpl --enable-version3
+  --enable-version3
   --enable-zlib --pkg-config-flags=--static
 )
 

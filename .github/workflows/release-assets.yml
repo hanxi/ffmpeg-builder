@@ -131,11 +131,17 @@ jobs:
       - name: Download FFmpeg source
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/ffmpeg-source"
+          source_dir="$RUNNER_TEMP/ffmpeg-source"
+          archive="$RUNNER_TEMP/ffmpeg.tar.bz2"
+          if command -v cygpath >/dev/null 2>&1; then
+            source_dir="$(cygpath -u "$source_dir")"
+            archive="$(cygpath -u "$archive")"
+          fi
+          mkdir -p "$source_dir"
           curl -fL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 \
-            "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2" -o "$RUNNER_TEMP/ffmpeg.tar.bz2"
-          MSYS_NO_PATHCONV=1 tar --force-local -xjf "$RUNNER_TEMP/ffmpeg.tar.bz2" -C "$RUNNER_TEMP/ffmpeg-source"
-          echo "FFMPEG_SOURCE_DIR=$RUNNER_TEMP/ffmpeg-source/ffmpeg-${FFMPEG_VERSION}" >> "$GITHUB_ENV"
+            "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2" -o "$archive"
+          tar -xjf "$archive" -C "$source_dir"
+          echo "FFMPEG_SOURCE_DIR=$source_dir/ffmpeg-${FFMPEG_VERSION}" >> "$GITHUB_ENV"
       - name: Build and package target
         env:
           FFMPEG_SOURCE_COMMIT: ${{ needs.prepare.outputs.source_commit }}
