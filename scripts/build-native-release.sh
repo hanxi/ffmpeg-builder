@@ -32,7 +32,7 @@ case "$target" in
   linux-x86_64) host=x86_64-linux-gnu ;;
   linux-arm64) host=aarch64-linux-gnu; common+=(--target-os=linux --arch=aarch64 --enable-cross-compile) ;;
   linux-armv7) host=arm-linux-gnueabihf; common+=(--target-os=linux --arch=arm --enable-cross-compile) ;;
-  windows-x86_64) host=x86_64-w64-mingw32; common+=(--target-os=mingw32 --arch=x86_64) ;;
+  windows-x86_64) host=x86_64-w64-mingw32; common+=(--target-os=mingw32 --arch=x86_64 --enable-cross-compile) ;;
   macos-arm64) host=arm64-apple-darwin; common+=(--target-os=darwin --arch=aarch64) ;;
   macos-x86_64) host=x86_64-apple-darwin; common+=(--target-os=darwin --arch=x86_64) ;;
   android-arm64-v8a) host=aarch64-linux-android; common+=(--target-os=android --arch=aarch64 --enable-cross-compile) ;;
