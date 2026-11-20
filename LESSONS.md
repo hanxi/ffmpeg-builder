@@ -27,3 +27,9 @@
 - 规则：先按通道读取具体 Release tag，再校验 manifest 的 tag、平台、ABI、大小和 SHA-256；解析结果写入构建记录并供整个矩阵复用。不能在各 job 中直接读取滚动 `latest` URL。
 - 正确示例：`ffmpeg-resolution.json` 同时记录 `release_tag`、`source_commit`、`manifest_sha256` 和每项资产摘要；下载后再按摘要校验，缺项或替换立即失败。
 - Seen 1× (2026-11-20)。状态：本地实现，远端多平台构建与设备安装待发布流水线验收。
+
+### BUILD-004：macOS Release 工具只链接系统动态库
+
+- 证据：Lynx Intel macOS Bundle 构建（Songloft CI `44748954168`）拒绝 FFmpeg 引用的 `libX11.6.dylib`。FFmpeg 编译机自动探测到安装目录的额外库，安装包中没有这些库。
+- 规则：关闭 macOS FFmpeg 自动探测，显式启用系统 TLS 和 zlib。发布前用 `otool -L` 检查工具的动态依赖，只接受系统路径。
+- Seen 1× (2026-11-20)。

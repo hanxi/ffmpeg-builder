@@ -86,7 +86,8 @@ if [[ "$target" == ios-arm64 ]]; then
     --extra-cflags="-arch arm64 -miphoneos-version-min=15.0"
     --extra-ldflags="-arch arm64 -miphoneos-version-min=15.0")
 elif [[ "$target" == macos-* ]]; then
-  common+=(--enable-securetransport)
+  # Homebrew on the Intel runner can otherwise add undeclared X11 libraries.
+  common+=(--disable-autodetect --enable-securetransport --enable-zlib)
 elif [[ "$target" == windows-* ]]; then
   common+=(--enable-schannel --extra-ldflags="-static-libgcc")
 fi
@@ -120,7 +121,13 @@ else
   fi
   cp "$destination/prefix/bin/ffmpeg$source_extension" "$destination/bin/ffmpeg$extension"
   cp "$destination/prefix/bin/ffprobe$source_extension" "$destination/bin/ffprobe$extension"
-  if [[ "$target" == android-* ]]; then
+  if [[ "$target" == macos-* ]]; then
+    for program in "$destination/bin/"*; do
+      otool -L "$program" > "$destination/macos-dependencies.txt"
+      awk 'NR > 1 && $1 !~ /^\/(usr\/lib|System\/Library)\// { print; invalid = 1 }
+           END { exit invalid }' "$destination/macos-dependencies.txt"
+    done
+  elif [[ "$target" == android-* ]]; then
     readelf="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
     for program in "$destination/bin/"*; do
       "$readelf" -h "$program" > "$destination/elf-header.txt"

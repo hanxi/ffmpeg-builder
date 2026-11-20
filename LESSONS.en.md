@@ -27,3 +27,9 @@
 - Rule: resolve a concrete Release tag for the selected channel first, then validate the manifest tag, platform, ABI, size, and SHA-256. Save the resolution and reuse it across the whole matrix. Jobs must not read a rolling `latest` URL directly.
 - Correct example: `ffmpeg-resolution.json` records `release_tag`, `source_commit`, `manifest_sha256`, and each asset digest. Downloads are checked again and missing or replaced assets stop the build.
 - Seen 1× (2026-11-20). Status: local implementation; remote multi-platform builds and device installation remain for release-pipeline acceptance.
+
+### BUILD-004: Link macOS release tools only to system dynamic libraries
+
+- Evidence: the Lynx Intel macOS Bundle in Songloft CI run `44748954168` rejected FFmpeg's `libX11.6.dylib` dependency. FFmpeg detected an extra library on the build runner that was absent from the installer.
+- Rule: disable macOS FFmpeg autodetection, explicitly enable system TLS and zlib, and check the executables with `otool -L` before publishing. Accept only system paths.
+- Seen 1× (2026-11-20).
