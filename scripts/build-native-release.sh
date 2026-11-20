@@ -86,7 +86,11 @@ if [[ "$target" == ios-arm64 ]]; then
 else
   mkdir -p "$destination/bin"
   extension=
-  [[ "$target" == windows-x86_64 ]] && extension=.exe
-  cp "$destination/prefix/bin/ffmpeg" "$destination/bin/ffmpeg$extension"
-  cp "$destination/prefix/bin/ffprobe" "$destination/bin/ffprobe$extension"
+  source_extension=
+  if [[ "$target" == windows-x86_64 ]]; then
+    extension=.exe
+    source_extension=.exe
+  fi
+  cp "$destination/prefix/bin/ffmpeg$source_extension" "$destination/bin/ffmpeg$extension"
+  cp "$destination/prefix/bin/ffprobe$source_extension" "$destination/bin/ffprobe$extension"
 fi
