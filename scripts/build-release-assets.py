@@ -63,9 +63,6 @@ def command_output(path: Path, *args: str) -> str:
 def check_executable(path: Path, expected_version: str, expected_architecture: str) -> None:
     if not path.is_file() or not (path.stat().st_mode & stat.S_IXUSR):
         raise ValueError(f"{path} must be a regular executable file")
-    version = command_output(path, "-version").splitlines()[0]
-    if not re.search(rf"\bversion (?:n)?{re.escape(expected_version)}(?:[ -]|$)", version):
-        raise ValueError(f"{path} reports an unexpected version: {version}")
     file_info = ""
     if shutil.which("file"):
         file_info = subprocess.run(["file", str(path)], capture_output=True, text=True, check=False).stdout.lower()
@@ -78,6 +75,10 @@ def check_executable(path: Path, expected_version: str, expected_architecture: s
     }.get(expected_architecture, ())
     if architecture_tokens and any(marker in file_info for marker in ("elf", "pe32", "mach-o")) and not any(token in file_info for token in architecture_tokens):
         raise ValueError(f"{path} has an unexpected architecture: {file_info.strip()}")
+    if not architecture_tokens or any(token in file_info for token in architecture_tokens):
+        version = command_output(path, "-version").splitlines()[0]
+        if not re.search(rf"\bversion (?:n)?{re.escape(expected_version)}(?:[ -]|$)", version):
+            raise ValueError(f"{path} reports an unexpected version: {version}")
 
 
 def check_static_library(path: Path, expected_arch: str) -> None:
@@ -114,12 +115,17 @@ def make_archive(target: str, version: str, source_commit: str, ffmpeg: Path | N
         else:
             if framework is None:
                 raise ValueError("ios-arm64 requires --framework")
-            check_static_library(framework, architecture)
-            destination = root / framework.name
             if framework.is_dir():
+                libraries = sorted(framework.glob("*.a"))
+                if not libraries:
+                    raise ValueError(f"{framework} must contain at least one static library")
+                destination = root / framework.name
                 shutil.copytree(framework, destination)
+                for library in libraries:
+                    check_static_library(library, architecture)
             else:
-                shutil.copy2(framework, destination)
+                check_static_library(framework, architecture)
+                shutil.copy2(framework, root / framework.name)
 
         metadata = {
             "target": target,
