@@ -17,15 +17,14 @@ common=(
   --disable-debug --disable-doc --enable-small
   --enable-protocol=file,pipe,http,https,tcp,udp,tls,crypto --enable-openssl
   --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2,mpegps,mpegts,avi,flv,rm,mpegvideo,h264,hevc,m4v,ac3,hls
-  --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint,hls,mpegts
+  --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,hls,mpegts
   --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png,mp2,mp2float,ac3,eac3,dca,cook
   --enable-decoder=h264,hevc,vp8,vp9,mpeg1video,mpeg2video,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,wmv1,wmv2,wmv3,vc1,flv,h263,rv10,rv20,rv30,rv40,theora
-  --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,pcm_s32le,aac,mjpeg,png,libx264
+  --enable-encoder=flac,pcm_s16le,pcm_s24le,pcm_s32le,aac,mjpeg,png
   --enable-parser=mpegaudio,aac,flac,opus,h264,hevc,mpegvideo,mpeg4video,vp8,vp9,vc1,ac3,dca
   --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc,extract_extradata
   --enable-filter=aresample,anull,loudnorm,scale,format,null,atempo
-  --enable-gpl --enable-version3 --enable-chromaprint
-  --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264
+  --enable-gpl --enable-version3
   --enable-zlib --pkg-config-flags=--static
 )
 
@@ -43,6 +42,9 @@ case "$target" in
   *) echo "unsupported FFmpeg release target: $target" >&2; exit 2 ;;
 esac
 
+if [[ "$target" == linux-x86_64 ]]; then
+  common+=(--enable-muxer=chromaprint --enable-chromaprint --enable-libmp3lame --enable-libvorbis --enable-libopus --enable-libx264 --enable-encoder=libmp3lame,libvorbis,libopus,libx264)
+fi
 if [[ "$target" != linux-x86_64 && -n "${CROSS_PREFIX:-}" ]]; then
   common+=(--cross-prefix="$CROSS_PREFIX")
 fi
@@ -57,6 +59,9 @@ if [[ -n "${AR:-}" ]]; then
 fi
 if [[ -n "${RANLIB:-}" ]]; then
   common+=(--ranlib="$RANLIB")
+fi
+if [[ "$target" == windows-x86_64 || "$target" == android-x86_64 ]]; then
+  common+=(--disable-x86asm)
 fi
 if [[ "$target" == android-* && -n "${ANDROID_API:-}" ]]; then
   common+=(--sysroot="${ANDROID_NDK_SYSROOT:?ANDROID_NDK_SYSROOT is required}" --extra-cflags="-fPIC" --extra-ldflags="-fuse-ld=lld")

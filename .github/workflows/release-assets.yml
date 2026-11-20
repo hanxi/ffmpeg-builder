@@ -101,10 +101,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install build dependencies
-        if: startsWith(matrix.target, 'linux-')
+        if: startsWith(matrix.target, 'linux-') || startsWith(matrix.target, 'android-')
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf binutils-aarch64-linux-gnu binutils-arm-linux-gnueabihf libc6-dev-arm64-cross libc6-dev-armhf-cross yasm nasm pkg-config zlib1g-dev libssl-dev libmp3lame-dev libogg-dev libvorbis-dev libopus-dev libchromaprint-dev libx264-dev curl bzip2
+      - name: Install Apple build tools
+        if: startsWith(matrix.target, 'macos-') || matrix.target == 'ios-arm64'
+        run: |
+          brew install nasm pkg-config || true
       - name: Set up Android NDK
         if: startsWith(matrix.target, 'android-')
         uses: android-actions/setup-android@v4
@@ -130,7 +134,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/ffmpeg-source"
           curl -fL --retry 5 --retry-all-errors --retry-delay 3 --connect-timeout 30 --max-time 600 \
             "https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2" -o "$RUNNER_TEMP/ffmpeg.tar.bz2"
-          tar -xjf "$RUNNER_TEMP/ffmpeg.tar.bz2" -C "$RUNNER_TEMP/ffmpeg-source"
+          MSYS_NO_PATHCONV=1 tar -xjf "$RUNNER_TEMP/ffmpeg.tar.bz2" -C "$RUNNER_TEMP/ffmpeg-source"
           echo "FFMPEG_SOURCE_DIR=$RUNNER_TEMP/ffmpeg-source/ffmpeg-${FFMPEG_VERSION}" >> "$GITHUB_ENV"
       - name: Build and package target
         env:
