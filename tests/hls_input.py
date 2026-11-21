@@ -164,6 +164,49 @@ def main():
                         )
                     )["streams"]
 
+                run(
+                    [
+                        "ffmpeg",
+                        "-v",
+                        "error",
+                        "-f",
+                        "lavfi",
+                        "-i",
+                        "sine=frequency=800:sample_rate=48000:duration=2",
+                        "-af",
+                        "pan=5.1|FL=c0|FR=c0|FC=c0|LFE=c0|BL=c0|BR=c0",
+                        "-c:a",
+                        "dca",
+                        "-strict",
+                        "experimental",
+                        "surround.dts",
+                    ],
+                    root,
+                )
+                probe = json.loads(
+                    candidate(
+                        ffprobe,
+                        [
+                            "-v", "error", "-show_format", "-show_streams",
+                            "-of", "json", "surround.dts",
+                        ],
+                    )
+                )
+                assert probe["format"]["format_name"] == "dts", probe
+                assert float(probe["format"]["duration"]) > 1.9, probe
+                assert probe["streams"][0]["codec_name"] == "dts", probe
+                assert probe["streams"][0]["channels"] == 6, probe
+                candidate(
+                    ffmpeg,
+                    [
+                        "-v", "error", "-i", "surround.dts", "-map", "0:a:0",
+                        "-c:a", "libmp3lame", "-b:a", "320k", "surround.mp3",
+                    ],
+                )
+                (stream,) = metadata("surround.mp3")
+                assert (stream["codec_name"], stream["channels"]) == ("mp3", 2), stream
+                print("DTS: 5.1 input probed and transcoded to stereo MP3")
+
                 def hashes(source):
                     packets = json.loads(
                         candidate(

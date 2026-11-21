@@ -11,7 +11,8 @@
 - 后端验证：不改业务源码，通过隔离 Go overlay 将测试服务换成新工具；HLS 定向测试全部通过，实际第一个源约 7 秒创建会话，HTTP 播放列表、分片、Range、删除和回收通过，输出 H.264 1920×1080 + AAC-LC 双声道 48 kHz。日志 `/tmp/songloft-541-go-new-tools.log`、`/tmp/songloft-541-actual-http.log`；最终工作树与命令见 `/tmp/songloft-541-verification.json`。第三个源在本地网络被上游重置连接，带时效签名的第二个源未验收。
 - 发布边界：修复本仓库后仍需推送工具镜像，等待 Songloft 构建同步基础镜像并重建容器。Songloft 的二进制在线升级不会替换 ffmpeg/ffprobe，不能据主程序版本推断工具能力。
 - 本地验证阶段 Not run：ARM 产物运行、远端 CI 和 iPhone Safari；amd64 及后端验证不替代这些验收。
-- Seen 1× (2026-10-30)。状态：本次修复；镜像构建、主仓库指针同步及设备验收以对应提交的后续交付记录为准。
+- 现有 Songloft Docker 镜像已启用 `dca` 解码器，ffprobe 仍无法打开裸 DTS。Docker 和 Bundle 构建都加入 `dts`、`dtshd` demuxer。用本地生成的 5.1 声道 DTS 验证 Linux amd64 FFmpeg 8.0.1 候选工具，探测成功并输出双声道 MP3。FFmpeg FATE 的 DTS-HD MA 样本也通过探测和转码。[songloft-org/songloft#588](https://github.com/songloft-org/songloft/issues/588) · [FATE 样本](https://fate-suite.ffmpeg.org/dts/dcadec-suite/xll_51_24_48_768.dtshd)
+- Seen 2× (2026-10-30, 2026-11-21)。镜像构建、主仓库指针同步及设备验收以对应提交的后续交付记录为准。
 
 ## BUILD-002：源码下载的连接重置需要显式、有限重试
 
