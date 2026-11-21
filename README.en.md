@@ -104,7 +104,7 @@ Songloft's binary updater does not replace ffmpeg/ffprobe inside a container. Af
 
 The separate `build-ffprobe.yml` workflow builds Docker images. It handles pushes and pull requests targeting `main` that change `Dockerfile`, `tests/**`, or that workflow. Documentation-only changes trigger neither workflow. Existing Releases receive replacements under the same asset names. Verify their digests and manifest when checking a build.
 
-[dev Release](https://github.com/hanxi/ffmpeg-builder/releases/tag/dev) · [Package inventory](https://songloft.hanxi.cc/en/release-packages)
+[Latest stable](https://github.com/hanxi/ffmpeg-builder/releases/latest) · [dev](https://github.com/hanxi/ffmpeg-builder/releases/tag/dev) · [Package inventory](https://songloft.hanxi.cc/en/release-packages)
 
 Build one asset locally with the platform toolchain:
 

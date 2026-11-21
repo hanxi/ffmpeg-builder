@@ -104,7 +104,7 @@ Songloft 的二进制在线升级不会替换容器内的 ffmpeg/ffprobe。修�
 
 Docker 镜像由独立的 `build-ffprobe.yml` 构建。它监听针对 `main` 且涉及 `Dockerfile`、`tests/**` 或该 workflow 的 push 和 pull request。纯文档更新不启动这两个 workflow。已有 Release 使用同名资产覆盖上传，核对构建时应查看附件摘要和 manifest。
 
-[dev Release](https://github.com/hanxi/ffmpeg-builder/releases/tag/dev) · [完整包名](https://songloft.hanxi.cc/release-packages)
+[最新正式版](https://github.com/hanxi/ffmpeg-builder/releases/latest) · [dev](https://github.com/hanxi/ffmpeg-builder/releases/tag/dev) · [完整包名](https://songloft.hanxi.cc/release-packages)
 
 本地可用平台工具链生成单项资产：
 
