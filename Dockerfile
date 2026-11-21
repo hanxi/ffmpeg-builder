@@ -101,10 +101,10 @@ RUN ./configure \
     --enable-protocol=crypto \
     --enable-openssl \
     \
-    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2,mpegps,mpegts,avi,flv,rm,mpegvideo,h264,hevc,m4v,ac3,dts,dtshd,hls \
+    --enable-demuxer=mp3,aac,flac,ogg,wav,matroska,mov,ape,wv,asf,image2,mpegps,mpegts,avi,flv,rm,mpegvideo,h264,hevc,m4v,ac3,dts,dtshd,dsf,iff,hls \
     --enable-muxer=mp3,flac,ogg,wav,matroska,adts,ipod,chromaprint,hls,mpegts \
     \
-    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png,mp2,mp2float,ac3,eac3,dca,cook \
+    --enable-decoder=mp3,mp3float,aac,flac,vorbis,opus,pcm_s16le,pcm_s24le,pcm_s32le,alac,ape,wavpack,wmav1,wmav2,mjpeg,png,mp2,mp2float,ac3,eac3,dca,cook,dsd_lsbf,dsd_lsbf_planar,dsd_msbf,dsd_msbf_planar,dst \
     --enable-decoder=h264,hevc,vp8,vp9,mpeg1video,mpeg2video,mpeg4,msmpeg4v1,msmpeg4v2,msmpeg4v3,wmv1,wmv2,wmv3,vc1,flv,h263,rv10,rv20,rv30,rv40,theora \
     --enable-encoder=libmp3lame,flac,libvorbis,libopus,pcm_s16le,pcm_s24le,aac,mjpeg,png,libx264 \
     \

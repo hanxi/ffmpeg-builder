@@ -34,3 +34,10 @@
 - Evidence: the Lynx Intel macOS Bundle in Songloft CI run `44748954168` rejected FFmpeg's `libX11.6.dylib` dependency. FFmpeg detected an extra library on the build runner that was absent from the installer.
 - Rule: disable macOS FFmpeg autodetection, explicitly enable system TLS and zlib, and check the executables with `otool -L` before publishing. Accept only system paths.
 - Seen 1× (2026-11-20).
+
+## BUILD-005 · Exercise both DSDIFF codecs in compact tools
+
+- Scope: Docker and Linux amd64 Bundle tools built with FFmpeg 8.0.1 from builder baseline `6e3ab8f396931c421e090cf6a1ab045cf24a266b` plus the working changes.
+- DSDIFF uses the IFF demuxer for both raw DSD and compressed DST. Probe and transcode each sample because a working raw DSD decoder does not exercise the separate DST decoder.
+- `tests/audio_input.py` probed and transcoded ADTS, WavPack, generated raw DSD, and the pinned FATE DST sample in each compact build. An independent FFprobe decoded the resulting stereo MP3 files. [FFmpeg FATE sample](https://fate-suite.ffmpeg.org/dst/dst-64fs44-2ch.dff)
+- Seen 1× (2026-11-21).

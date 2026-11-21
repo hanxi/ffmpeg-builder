@@ -34,3 +34,10 @@
 - 证据：Lynx Intel macOS Bundle 构建（Songloft CI `44748954168`）拒绝 FFmpeg 引用的 `libX11.6.dylib`。FFmpeg 编译机自动探测到安装目录的额外库，安装包中没有这些库。
 - 规则：关闭 macOS FFmpeg 自动探测，显式启用系统 TLS 和 zlib。发布前用 `otool -L` 检查工具的动态依赖，只接受系统路径。
 - Seen 1× (2026-11-20)。
+
+## BUILD-005：精简工具用两种 DSDIFF 编码验收
+
+- 范围：Docker 和 Linux amd64 Bundle 的 FFmpeg 8.0.1 精简工具，基线 `6e3ab8f396931c421e090cf6a1ab045cf24a266b` 加工作树改动。
+- 原始 DSD 和压缩 DST 的 DSDIFF 文件都通过 IFF 解复用，解码器各自独立。两类样本都要用构建产物探测和转码。
+- `tests/audio_input.py` 在两类精简构建中探测和转码 ADTS、WavPack、生成的原始 DSD 文件及固定摘要的 FATE DST 样本，通过独立 FFprobe 解码输出的双声道 MP3。[FFmpeg FATE 样本](https://fate-suite.ffmpeg.org/dst/dst-64fs44-2ch.dff)
+- Seen 1× (2026-11-21)。

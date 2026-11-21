@@ -46,6 +46,9 @@ jobs:
     - name: Test built FFmpeg and FFprobe with DTS and HLS inputs
       run: python3 tests/hls_input.py --image ffmpeg-hls-test:local
 
+    - name: Test AAC, WavPack, and both DSDIFF codecs
+      run: python3 tests/audio_input.py --image ffmpeg-hls-test:local
+
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
